@@ -15,7 +15,9 @@ def grad(x) -> float:
 if __name__ == "__main__":
     print('\n|| UNCONSTRAINED MULTIVARIABLE OPTIMIZATION ||\n')
 
-    model = UMO(fun=fun, x=[.0, .0], grad=grad)
+    model = UMO(fun=fun, x=(.0, .0), grad=grad)
     model.solve(method='Steepest Descent')
-    print(f'result = {model.result}')
+    print(f'result = {model.result}\n')
+    model.solve(method='Conjugate Gradient')
+    print(f'result = {model.result}\n')
 
