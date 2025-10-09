@@ -24,6 +24,7 @@ class UMO:
             Метод найшвидшого спуску    ->  "Steepest Descent"
             Метод спряжених градієнтів  ->  "Conjugate Gradient"
             Метод Ньютона               ->  "Newton"
+            Метод квазі-Ньютона (BFGS)  ->  "Quasi-Newton"
         '''
         self.result = None
         match method:
@@ -33,17 +34,18 @@ class UMO:
                 self.result = self._conjugateGradient()
             case 'Newton':
                 self.result = self._newton()
+            case 'Quasi-Newton':
+                self.result = self._bfgs()
             case _:
                 raise Exception('! Неправильне введення методу оптимізації !')
     
     def _steepestDescent(self) -> dict:
         '''Метод найшвидшого спуску'''
         x = self.x.copy()
-        EPS = self.EPS
         alpha = .0
         i = 0
         for i in range(self.MAXITER):
-            if LA.norm(self.grad(x)) < EPS: break
+            if LA.norm(self.grad(x)) < self.EPS: break
             dx = -self.grad(x)
             alpha = self._armijo_line_search(x, dx)
             x += alpha * dx
@@ -51,13 +53,12 @@ class UMO:
     def _conjugateGradient(self) -> dict:
         '''Метод спряжених градієнтів'''
         x = self.x.copy()
-        EPS = self.EPS
         alpha = .0
         dx = -self.grad(x)
         grad_norm = LA.norm(self.grad(x))
         i = 0
         for i in range(self.MAXITER):
-            if grad_norm < EPS: break
+            if grad_norm < self.EPS: break
             alpha = self._armijo_line_search(x, dx)
             x += alpha * dx
             grad_new = LA.norm(self.grad(x))
@@ -68,19 +69,42 @@ class UMO:
     def _newton(self) -> dict:
         '''Метод Ньютона'''
         x = self.x.copy()
-        EPS = self.EPS
         dx = self.grad(x)
         deltax = -LA.inv(self.hesse(x)) @ dx
         grad_norm = LA.norm(dx)
         i = 0
         for i in range(self.MAXITER):
-            if grad_norm < EPS: break
+            if grad_norm < self.EPS: break
             x += deltax
             dx = self.grad(x)
             deltax = -LA.inv(self.hesse(x)) @ dx
             grad_norm = LA.norm(self.grad(x))
-        return {'x':x.tolist(), 'fun':float(self.fun(x)), 'grad':self.grad(x).tolist(), 'hesse':self.hesse(x).tolist(), 'grad_norm':float(grad_norm), 'iter':i}
-
+        return {'x':x.tolist(), 'fun':float(self.fun(x)), 'grad':dx.tolist(), 'hesse':self.hesse(x).tolist(), 'grad_norm':float(grad_norm), 'iter':i}
+    def _bfgs(self) -> dict:
+        '''Метод Бройдена-Флетчера-Гольдфарба-Шанно'''
+        x = self.x.copy()
+        H = np.eye(len(x))
+        dx = self.grad(x)
+        grad_norm = LA.norm(dx)
+        i = 0
+        for i in range(self.MAXITER):
+            if grad_norm < self.EPS: break
+            direction = -H @ dx
+            alpha = self._armijo_line_search(x, direction)
+            x_new = x + alpha * direction
+            dx_new = self.grad(x_new)
+            d = x_new - x
+            g = dx_new - dx
+            denom = g @ d
+            if abs(denom) < 1e-12: break
+            rho = 1. / denom
+            I = np.eye(len(x))
+            H = (I - rho * np.outer(d, g)) @ H @ (I - rho * np.outer(g, d)) + rho * np.outer(d, d)
+            x = x_new
+            dx = dx_new
+            grad_norm = LA.norm(dx)
+        return {'x':x.tolist(), 'fun':float(self.fun(x)), 'grad':dx.tolist(), 'hesse':self.hesse(x).tolist(), 'grad_norm':float(grad_norm), 'iter':i}
+    
     def _armijo_line_search(self, x, dx, alpha:float=1., beta:float=0.5, const:float=1e-4):
         '''Лінійний пошук зі зменшенням кроку за правилом Арміхо'''
         f_x = self.fun(x)

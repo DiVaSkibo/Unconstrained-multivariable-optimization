@@ -24,4 +24,6 @@ if __name__ == "__main__":
     print(f'result = {model.result}\n')
     model.solve(method='Newton')
     print(f'result = {model.result}\n')
+    model.solve(method='Quasi-Newton')
+    print(f'result = {model.result}\n')
 
