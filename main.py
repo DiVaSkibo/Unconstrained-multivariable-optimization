@@ -18,12 +18,7 @@ if __name__ == "__main__":
     print('\n|| UNCONSTRAINED MULTIVARIABLE OPTIMIZATION ||\n')
 
     model = UMO(fun=fun, x=(.0, .0), grad=grad, hesse=hesse)
-    model.solve(method='Steepest Descent')
-    print(f'result = {model.result}\n')
-    model.solve(method='Conjugate Gradient')
-    print(f'result = {model.result}\n')
-    model.solve(method='Newton')
-    print(f'result = {model.result}\n')
-    model.solve(method='Quasi-Newton')
-    print(f'result = {model.result}\n')
+    for method in ('Steepest Descent', 'Conjugate Gradient', 'Newton', 'Quasi-Newton'):
+        model.solve(method=method)
+        model.displayResult()
 
