@@ -1,4 +1,3 @@
-import math
 import numpy as np
 from numpy import linalg as LA
 
@@ -6,9 +5,15 @@ from numpy import linalg as LA
 class UMO:
     '''
     **Unconstrained Multivariable Optimization** - *Багатовимірна Безумовна Оптимізація*
+    
+    *Використання:*
+
+        1. umo = UMO(fun: callable, x: tuple | list = (.0,.0), grad: callable = None, hesse: callable = None, eps: float = 1e-3, maxiter: int = 1000)
+        2. umo.solve(method: str)
+        3. umo.displayResult() | result = umo.result
     '''
 
-    def __init__(self, fun:callable, x:tuple=(.0, .0), grad:callable=None, hesse:callable=None, eps:float=1e-3, maxiter=1000):
+    def __init__(self, fun:callable, x:tuple=(.0, .0), grad:callable=None, hesse:callable=None, eps:float=1e-3, maxiter:int=1000):
         self.fun = fun
         self.x = np.array(x, dtype=float)
         self.grad = grad
@@ -25,6 +30,7 @@ class UMO:
             Метод спряжених градієнтів  ->  "Conjugate Gradient"
             Метод Ньютона               ->  "Newton"
             Метод квазі-Ньютона (BFGS)  ->  "Quasi-Newton"
+            дживса , елдера-міда
         '''
         self.result = None
         match method:

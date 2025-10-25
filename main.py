@@ -2,6 +2,8 @@ import math
 import numpy as np
 
 from src.umo import UMO
+from src.ui import *
+from src.appumo import Appumo
 
 
 def fun(x) -> float:
@@ -17,8 +19,11 @@ def hesse(x) -> np.ndarray:
 if __name__ == "__main__":
     print('\n|| UNCONSTRAINED MULTIVARIABLE OPTIMIZATION ||\n')
 
-    model = UMO(fun=fun, x=(.0, .0), grad=grad, hesse=hesse)
-    for method in ('Steepest Descent', 'Conjugate Gradient', 'Newton', 'Quasi-Newton'):
-        model.solve(method=method)
-        model.displayResult()
+    # model = UMO(fun=fun, x=(.0, .0), grad=grad, hesse=hesse)
+    # for method in ('Steepest Descent', 'Conjugate Gradient', 'Newton', 'Quasi-Newton'):
+    #     model.solve(method=method)
+    #     model.displayResult()
+    
+    appumo = Appumo()
+    appumo.mainloop()
 
