@@ -121,11 +121,11 @@
   "CTkTextbox": {
     "corner_radius": 6,
     "border_width": 0,
-    "fg_color": ["gray100", "gray20"],
-    "border_color": ["#979DA2", "#565B5E"],
-    "text_color": ["gray14", "gray84"],
-    "scrollbar_button_color": ["gray55", "gray41"],
-    "scrollbar_button_hover_color": ["gray40", "gray53"]
+    "fg_color": ["#E0E0C4", "#080821"],
+    "border_color": "transparent",
+    "text_color": ["#000000", "#FFFFFF"],
+    "scrollbar_button_color": ["#000000", "#FFFFFF"],
+    "scrollbar_button_hover_color": ["#000000", "#FFFFFF"]
   },
   "CTkScrollableFrame": {
     "label_fg_color": ["gray80", "gray21"]

@@ -148,10 +148,14 @@ class Appumo(CTk):
     def _buildTable(self):
         '''Будування форми для Таблиці'''
         self.frm_table = CTkFrame(master=self.frm_main)
-        self.frm_table.grid(row=0, column=2, sticky=NE, padx=20)
-        CTkLabel(master=self.frm_table, text='ТАБЛИЦЯ', font=self.ui.FONT_HEADER()).grid(row=0, column=0)
+        self.frm_table.grid(row=0, column=2, sticky=NW, padx=20)
+        self.frm_table.rowconfigure(1, weight=1)
         
-        CTkLabel(master=self.frm_table, text='ну скоро буде...').grid(row=1, column=0)
+        # заголовок
+        CTkLabel(master=self.frm_table, text='ТАБЛИЦЯ', font=self.ui.FONT_HEADER()).grid(row=0, column=0, sticky=EW, pady=10)
+        # таблиця
+        self.table = CTkTextbox(master=self.frm_table, state=DISABLED, width=275)
+        self.table.grid(row=1, column=0, sticky=NSEW)
     def _buildPlot(self):
         '''Будування форми для Графіку'''
         self.frm_plot = CTkFrame(master=self.frm_main)
@@ -160,9 +164,6 @@ class Appumo(CTk):
         fig = Figure(figsize=(5, 5), dpi=100, constrained_layout=True, facecolor=self.ui.BG())
         plot = fig.add_subplot(111, projection='3d', facecolor=self.ui.BG())
         
-        # namespace = {'sqrt':math.sqrt}
-        # exec('def _FUNC(x) -> float: return ' + self.Fun.get(), namespace)
-        # self.umo.fun = namespace['_FUNC']
         self.umo.fun = callexec('fun', self.Fun)
 
         x = np.arange(-7.5, 7.5, .01)
@@ -190,20 +191,35 @@ class Appumo(CTk):
     def solve(self):
         self.recover()
         if self.Method.get() not in UMO.METHODS.keys(): return
+        # підготовка даних
         self.umo.x = tuple(x.get() for x in self.X)
         self.umo.grad = callexec('grad', self.Grad)
         self.umo.hesse = callexec('hesse', self.Hesse)
         self.umo.EPS = self.Eps.get()
+        # розв'язок
         self.umo.solve(UMO.METHODS[self.Method.get()])
+        # виведення результату
         self.umo.displayResult()
+        self.table.configure(state=NORMAL)
+        self.table.delete('0.0', END)
+        tres = ''
+        for key in self.umo.result:
+            value = self.umo.result[key]
+            if type(value) == float: value = round(value, 4)
+            elif type(value) == list:
+                if type(value[0]) == float: value = [round(v, 4) for v in value]
+                elif type(value[0]) == list: value = [[round(w, 4) for w in v] for v in value]
+            tres += f'{key}\t=      {value}\n'
+        self.table.insert('0.0', tres)
+        self.table.configure(state=DISABLED)
     
-    def switchTheme(self, theme:Theme=None, is_recover=True):
+    def switchTheme(self, theme:Theme=None, is_recover:bool=True):
         '''Перемикання теми (Темна <-> Світла)'''
         set_appearance_mode(self.ui.switch(theme).value)
         if is_recover: self.recover()
 
 
-def callexec(what:str, line) -> callable:
+def callexec(what:str, line:str|list) -> callable:
     namespace = {'sqrt':math.sqrt, 'np':np}
     match what:
         case 'fun':
@@ -215,7 +231,6 @@ def callexec(what:str, line) -> callable:
         case 'hesse':
             ckey = '_HESSE'
             call = 'def ' + ckey + '(x) -> np.ndarray: return np.array([[' + line[0][0].get() + ', ' + line[0][1].get() + '], [' + line[1][0].get() + ', ' + line[1][1].get() + ']])'
-    print(f'{ckey} : {call}\n')
     exec(call, namespace)
     return namespace[ckey]
 
