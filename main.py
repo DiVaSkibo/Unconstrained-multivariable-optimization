@@ -19,11 +19,5 @@ def hesse(x) -> np.ndarray:
 if __name__ == "__main__":
     print('\n|| UNCONSTRAINED MULTIVARIABLE OPTIMIZATION ||\n')
 
-    # model = UMO(fun=fun, x=(.0, .0), grad=grad, hesse=hesse)
-    # for method in ('Steepest Descent', 'Conjugate Gradient', 'Newton', 'Quasi-Newton'):
-    #     model.solve(method=method)
-    #     model.displayResult()
-    
     appumo = Appumo(UMO(fun=fun, x=(.0, .0), grad=grad, hesse=hesse))
     appumo.mainloop()
-

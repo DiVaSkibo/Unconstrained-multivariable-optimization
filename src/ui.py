@@ -11,23 +11,26 @@ class UI:
         
         1. ui = UI(theme: str | Theme = Theme.Dark)
         2. ui.switch(theme: Theme = None)  # для перемикання теми
+        3. ui.cwitch()  # для перемикання колорової-мапи
     
     Константи:
     
         FG - foreground
         BG - background
-        GRAPH - graph color
         FONT_FAMILY - шрифт
         FONT_TITLE - шрифт головного тексту
         FONT_HEADER - шрифт заголовку
+        CMAPS - набір колорових-мап
     '''
     theme = Theme.Dark
+    cmapi = 0
+    cmap = lambda self: self.CMAPS[self.cmapi]
     FG = lambda self: '#ffffff' if self.theme == Theme.Dark else '#000000'
     BG = lambda self: '#131326' if self.theme == Theme.Dark else "#e5e5cc"
-    GRAPH = lambda self: "#00ff99" if self.theme == Theme.Dark else "#5b00da"
     FONT_FAMILY = 'Georgia'
     FONT_TITLE = lambda self: (self.FONT_FAMILY, 28, 'bold')
     FONT_HEADER = lambda self: (self.FONT_FAMILY, 18, 'bold')
+    CMAPS = ('turbo', 'gnuplot2', 'hot', 'Spectral', 'bone')
 
     def __init__(self, theme:Theme=Theme.Dark):
         self.theme = theme
@@ -40,3 +43,6 @@ class UI:
             else: self.theme = Theme.Dark
         return self.theme
     
+    def cwitch(self) -> str:
+        self.cmapi = (self.cmapi + 1) % len(self.CMAPS)
+        return self.cmap()
