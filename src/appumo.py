@@ -49,7 +49,6 @@ class Appumo(CTk):
     self._buildMain()
   def recover(self):
     '''Відновлення додатку'''
-    self.configure(fg_color=self.ui.BG())
     self.frm_plot.destroy()
     self._buildPlot()
   
@@ -91,13 +90,8 @@ class Appumo(CTk):
     self.frm_main.grid(row=1, column=0, sticky=NSEW, padx=25, pady=15)
     self.frm_main.rowconfigure(0, weight=1)
     self.frm_main.columnconfigure(1, weight=1)
-    
-    self._buildInput()
-    self._buildPlot()
-    self._buildTable()
-  
-  def _buildInput(self):
-    '''Будування форми для Введення'''
+
+      # створення змінних для програми
     funstr = inspect.getsource(self.umo.fun)
     funstr = funstr[funstr.find('return ') + 7:]
     funstr = funstr.replace('math.', '').replace(' * ', '*').replace(' ** ', '**')
@@ -121,6 +115,17 @@ class Appumo(CTk):
     self.Hesse = [[StringVar(value=hessestr[0]), StringVar(value=hessestr[1])], [StringVar(value=hessestr[2]), StringVar(value=hessestr[3])]]
     self.Eps = DoubleVar(value=self.umo.EPS)
     
+    self.Xlims = [DoubleVar(value=-7.5), DoubleVar(value=7.5)]
+    self.Ylims = [DoubleVar(value=-7.5), DoubleVar(value=7.5)]
+    self.Zlims = [DoubleVar(value=-25.), DoubleVar(value=25.)]
+    
+      # будування підформ
+    self._buildInput()
+    self._buildPlot()
+    self._buildTable()
+  
+  def _buildInput(self):
+    '''Будування форми для Введення'''
     self.frm_input = CTkFrame(master=self.frm_main)
     self.frm_input.grid(row=0, column=0, sticky=NW)
     self.frm_input.rowconfigure((3, 9), minsize=10)
@@ -167,16 +172,24 @@ class Appumo(CTk):
     self.frm_plot.grid(row=0, column=1, sticky=NSEW)
     self.frm_plot.rowconfigure(0, weight=1)
     self.frm_plot.columnconfigure(0, weight=1)
+    self.frm_plot.rowconfigure(3, minsize=10)
+
       # дані
     self.umo.fun = callexec('fun', self.Fun)
-    x = np.arange(-7.5, 7.5, .1)
-    y = np.arange(-7.5, 7.5, .1)
+    x = np.arange(self.Xlims[0].get(), self.Xlims[1].get(), .1)
+    y = np.arange(self.Ylims[0].get(), self.Ylims[1].get(), .1)
     x, y = np.meshgrid(x, y)
-    zlims = (-25, 25)
     z = np.array([self.umo.fun([xi, yi]) for (xi, yi) in zip(x, y)])
-    z = np.where((z < zlims[0]) | (z > zlims[1]), np.nan, z)
+    z = np.where((z < self.Zlims[0].get()) | (z > self.Zlims[1].get()), np.nan, z)
       # фабула з вкладками
-    Plotview(master=self.frm_plot, ui=self.ui, x=x, y=y, z=z, zlims=(-25, 25)).grid(sticky=NSEW)
+    Plotview(master=self.frm_plot, ui=self.ui, x=x, y=y, z=z, zlims=(self.Zlims[0].get(), self.Zlims[1].get())).grid(row=0, column=0, sticky=NSEW)
+      # слайдери
+    CTkSlider(self.frm_plot, from_=-100, to=0, number_of_steps=20, variable=self.Xlims[0], orientation=HORIZONTAL, height=10).grid(row=1, column=0, pady=4)
+    CTkSlider(self.frm_plot, from_=1, to=100, number_of_steps=20,  variable=self.Xlims[1], orientation=HORIZONTAL, height=10).grid(row=2, column=0)
+    CTkSlider(self.frm_plot, from_=-100, to=0, number_of_steps=20, variable=self.Ylims[0], orientation=VERTICAL, width=10).grid(row=0, column=1, padx=4)
+    CTkSlider(self.frm_plot, from_=1, to=100, number_of_steps=20,  variable=self.Ylims[1], orientation=VERTICAL, width=10).grid(row=0, column=2)
+    CTkSlider(self.frm_plot, from_=-100, to=0, number_of_steps=20, variable=self.Zlims[0], orientation=HORIZONTAL, height=10).grid(row=4, column=0, pady=4)
+    CTkSlider(self.frm_plot, from_=1, to=100, number_of_steps=20,  variable=self.Zlims[1], orientation=HORIZONTAL, height=10).grid(row=5, column=0)
   
   def solve(self):
     '''Розрахунок задачі'''
@@ -207,6 +220,7 @@ class Appumo(CTk):
   def switchTheme(self, theme:Theme=None, is_recover:bool=True):
     '''Перемикання теми (Темна <-> Світла)'''
     set_appearance_mode(self.ui.switch(theme).value)
+    self.configure(fg_color=self.ui.BG())
     if is_recover: self.recover()
   def switchColormap(self):
     '''Перемикання кольорової-мапи'''

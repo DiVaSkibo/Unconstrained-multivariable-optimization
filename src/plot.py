@@ -15,6 +15,7 @@ class Plotview(CTkTabview):
 
   def _plotTab(self, tabi:int, x, y, z, zlims):
     '''Побудова графіку відповідно до вкладки'''
+      # вкладка
     self.add(f'tab-{tabi}')
     self.tab(f'tab-{tabi}').rowconfigure(0, weight=1)
     self.tab(f'tab-{tabi}').columnconfigure(0, weight=1)
@@ -23,18 +24,18 @@ class Plotview(CTkTabview):
       # фабула, параметризація фабули
     match tabi:
         case 1:
+            plot = fig.add_subplot(111, facecolor=self.ui.BG())
+            plot.contour(x, y, z, levels=10, cmap=self.ui.cmap())
+        case 2:
             plot = fig.add_subplot(111, projection='3d', facecolor=self.ui.BG())
             plot.set_zlim(zlims)
             plot.plot_surface(x, y, z, cmap=self.ui.cmap(), linewidth=0, shade=False)
             plot.xaxis.pane.set_facecolor(self.ui.BG())
             plot.yaxis.pane.set_facecolor(self.ui.BG())
             plot.zaxis.pane.set_facecolor(self.ui.BG())
-        case 2:
-            plot = fig.add_subplot(111, facecolor=self.ui.BG())
-            plot.contour(x, y, z, cmap=self.ui.cmap())
         case 3:
             plot = fig.add_subplot(111, facecolor=self.ui.BG())
-            plot.contourf(x, y, z, cmap=self.ui.cmap())
+            plot.contourf(x, y, z, levels=10, cmap=self.ui.cmap())
     plot.tick_params(colors=self.ui.FG())
     plot.grid(color=self.ui.FG())
       # полотно
