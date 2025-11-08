@@ -49,8 +49,9 @@ class Appumo(CTk):
     self._buildMain()
   def recover(self):
     '''Відновлення додатку'''
+    curtab = self.plotview._current_name
     self.frm_plot.destroy()
-    self._buildPlot()
+    self._buildPlot(curtab)
   
   def _buildTitle(self):
     '''Будування Титульної форми'''
@@ -166,8 +167,16 @@ class Appumo(CTk):
       # таблиця
     self.table = CTkTextbox(master=self.frm_table, state=DISABLED, width=275)
     self.table.grid(row=1, column=0, sticky=NSEW)
-  def _buildPlot(self):
+  def _buildPlot(self, tab:str=None):
     '''Будування форми для Графіку'''
+    def resizePlot(_):
+      x = np.arange(self.Xlims[0].get(), self.Xlims[1].get(), .1)
+      y = np.arange(self.Ylims[0].get(), self.Ylims[1].get(), .1)
+      x, y = np.meshgrid(x, y)
+      z = np.array([self.umo.fun([xi, yi]) for (xi, yi) in zip(x, y)])
+      z = np.where((z < self.Zlims[0].get()) | (z > self.Zlims[1].get()), np.nan, z)
+      self.plotview.resize(x, y, z, (self.Zlims[0].get(), self.Zlims[1].get()))
+
     self.frm_plot = CTkFrame(master=self.frm_main)
     self.frm_plot.grid(row=0, column=1, sticky=NSEW)
     self.frm_plot.rowconfigure(0, weight=1)
@@ -182,14 +191,15 @@ class Appumo(CTk):
     z = np.array([self.umo.fun([xi, yi]) for (xi, yi) in zip(x, y)])
     z = np.where((z < self.Zlims[0].get()) | (z > self.Zlims[1].get()), np.nan, z)
       # фабула з вкладками
-    Plotview(master=self.frm_plot, ui=self.ui, x=x, y=y, z=z, zlims=(self.Zlims[0].get(), self.Zlims[1].get())).grid(row=0, column=0, sticky=NSEW)
+    self.plotview = Plotview(master=self.frm_plot, ui=self.ui, x=x, y=y, z=z, zlims=(self.Zlims[0].get(), self.Zlims[1].get()), tabset=tab)
+    self.plotview.grid(row=0, column=0, sticky=NSEW)
       # слайдери
-    CTkSlider(self.frm_plot, from_=-100, to=0, number_of_steps=20, variable=self.Xlims[0], orientation=HORIZONTAL, height=10).grid(row=1, column=0, pady=4)
-    CTkSlider(self.frm_plot, from_=1, to=100, number_of_steps=20,  variable=self.Xlims[1], orientation=HORIZONTAL, height=10).grid(row=2, column=0)
-    CTkSlider(self.frm_plot, from_=-100, to=0, number_of_steps=20, variable=self.Ylims[0], orientation=VERTICAL, width=10).grid(row=0, column=1, padx=4)
-    CTkSlider(self.frm_plot, from_=1, to=100, number_of_steps=20,  variable=self.Ylims[1], orientation=VERTICAL, width=10).grid(row=0, column=2)
-    CTkSlider(self.frm_plot, from_=-100, to=0, number_of_steps=20, variable=self.Zlims[0], orientation=HORIZONTAL, height=10).grid(row=4, column=0, pady=4)
-    CTkSlider(self.frm_plot, from_=1, to=100, number_of_steps=20,  variable=self.Zlims[1], orientation=HORIZONTAL, height=10).grid(row=5, column=0)
+    CTkSlider(self.frm_plot, command=resizePlot, from_=-100, to=0, number_of_steps=20, variable=self.Xlims[0], orientation=HORIZONTAL, height=10).grid(row=1, column=0, pady=4)
+    CTkSlider(self.frm_plot, command=resizePlot, from_=1, to=100, number_of_steps=20,  variable=self.Xlims[1], orientation=HORIZONTAL, height=10).grid(row=2, column=0)
+    CTkSlider(self.frm_plot, command=resizePlot, from_=-100, to=0, number_of_steps=20, variable=self.Ylims[0], orientation=VERTICAL, width=10).grid(row=0, column=1, padx=4)
+    CTkSlider(self.frm_plot, command=resizePlot, from_=1, to=100, number_of_steps=20,  variable=self.Ylims[1], orientation=VERTICAL, width=10).grid(row=0, column=2)
+    CTkSlider(self.frm_plot, command=resizePlot, from_=-100, to=0, number_of_steps=20, variable=self.Zlims[0], orientation=HORIZONTAL, height=10).grid(row=4, column=0, pady=4)
+    CTkSlider(self.frm_plot, command=resizePlot, from_=1, to=100, number_of_steps=20,  variable=self.Zlims[1], orientation=HORIZONTAL, height=10).grid(row=5, column=0)
   
   def solve(self):
     '''Розрахунок задачі'''
