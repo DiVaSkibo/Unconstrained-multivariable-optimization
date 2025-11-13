@@ -42,11 +42,11 @@ class UMO:
             case 'Steepest Descent':
                 self.result, self.table = self._steepestDescent()
             case 'Conjugate Gradient':
-                self.result = self._conjugateGradient()
+                self.result, self.table = self._conjugateGradient()
             case 'Newton':
-                self.result = self._newton()
+                self.result, self.table = self._newton()
             case 'Quasi-Newton':
-                self.result = self._bfgs()
+                self.result, self.table = self._bfgs()
             case _:
                 raise Exception('! Неправильне введення методу оптимізації !')
     
@@ -89,7 +89,9 @@ class UMO:
         dx = -self.grad(x)
         gnorm = LA.norm(self.grad(x))
         i = 0
+        table = []
         for i in range(self.MAXITER):
+            table.append({'method':'Conjugate Gradient', 'x':x.tolist(), 'fun':float(self.fun(x)), 'grad':dx.tolist(), 'alpha':float(alpha), 'gnorm':float(gnorm), 'iter':i})
             if gnorm < self.EPS: break
             alpha = self._armijo_line_search(x, dx)
             x += alpha * dx
@@ -97,7 +99,7 @@ class UMO:
             beta = (grad_new ** 2) / (gnorm * gnorm)
             dx = dx * beta - self.grad(x)
             gnorm = grad_new
-        return {'method':'Conjugate Gradient', 'x':x.tolist(), 'fun':float(self.fun(x)), 'grad':dx.tolist(), 'alpha':float(alpha), 'gnorm':float(gnorm), 'iter':i}
+        return table[-1], pd.DataFrame(table)
     def _newton(self) -> dict:
         '''Метод Ньютона'''
         x = np.asarray(self.x, dtype=float)
@@ -105,13 +107,15 @@ class UMO:
         deltax = -LA.inv(self.hesse(x)) @ dx
         gnorm = LA.norm(dx)
         i = 0
+        table = []
         for i in range(self.MAXITER):
+            table.append({'method':'Newton', 'x':x.tolist(), 'fun':float(self.fun(x)), 'grad':dx.tolist(), 'hesse':self.hesse(x).tolist(), 'gnorm':float(gnorm), 'iter':i})
             if gnorm < self.EPS: break
             x += deltax
             dx = self.grad(x)
             deltax = -LA.inv(self.hesse(x)) @ dx
             gnorm = LA.norm(self.grad(x))
-        return {'method':'Newton', 'x':x.tolist(), 'fun':float(self.fun(x)), 'grad':dx.tolist(), 'hesse':self.hesse(x).tolist(), 'gnorm':float(gnorm), 'iter':i}
+        return table[-1], pd.DataFrame(table)
     def _bfgs(self) -> dict:
         '''Метод Бройдена-Флетчера-Гольдфарба-Шанно'''
         x = np.asarray(self.x, dtype=float)
@@ -119,7 +123,9 @@ class UMO:
         dx = self.grad(x)
         gnorm = LA.norm(dx)
         i = 0
+        table = []
         for i in range(self.MAXITER):
+            table.append({'method':'Quasi-Newton', 'x':x.tolist(), 'fun':float(self.fun(x)), 'grad':dx.tolist(), 'hesse':self.hesse(x).tolist(), 'gnorm':float(gnorm), 'iter':i})
             if gnorm < self.EPS: break
             direction = -H @ dx
             alpha = self._armijo_line_search(x, direction)
@@ -135,7 +141,7 @@ class UMO:
             x = x_new
             dx = dx_new
             gnorm = LA.norm(dx)
-        return {'method':'Quasi-Newton', 'x':x.tolist(), 'fun':float(self.fun(x)), 'grad':dx.tolist(), 'hesse':self.hesse(x).tolist(), 'gnorm':float(gnorm), 'iter':i}
+        return table[-1], pd.DataFrame(table)
     # def _hookejeeves(self) -> dict:
     #     '''Метод Хука-Дживса'''
     #     x = self.x.copy()
