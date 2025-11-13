@@ -19,5 +19,7 @@ def hesse(x) -> np.ndarray:
 if __name__ == "__main__":
     print('\n|| UNCONSTRAINED MULTIVARIABLE OPTIMIZATION ||\n')
 
-    appumo = Appumo(UMO(fun=fun, x=(.0, .0), grad=grad, hesse=hesse))
-    appumo.mainloop()
+    umo = UMO(fun=fun, x=(.0, .0), grad=grad, hesse=hesse)
+    umo.solve('Steepest Descent')
+    umo.displayResult()
+    umo.table.to_excel('Table.xlsx', sheet_name='Steepest Descent')

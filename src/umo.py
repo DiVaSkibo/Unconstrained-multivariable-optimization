@@ -1,3 +1,4 @@
+import pandas as pd
 import numpy as np
 from numpy import linalg as LA
 
@@ -39,7 +40,7 @@ class UMO:
         self.result = None
         match method:
             case 'Steepest Descent':
-                self.result = self._steepestDescent()
+                self.result, self.table = self._steepestDescent()
             case 'Conjugate Gradient':
                 self.result = self._conjugateGradient()
             case 'Newton':
@@ -73,12 +74,14 @@ class UMO:
         x = np.asarray(self.x, dtype=float)
         alpha = .0
         i = 0
+        table = [{'method':'Steepest Descent', 'x':x.tolist(), 'fun':float(self.fun(x)), 'grad':None, 'alpha':float(alpha), 'iter':i}]
         for i in range(self.MAXITER):
             if LA.norm(self.grad(x)) < self.EPS: break
             dx = -self.grad(x)
             alpha = self._armijo_line_search(x, dx)
             x += alpha * dx
-        return {'method':'Steepest Descent', 'x':x.tolist(), 'fun':float(self.fun(x)), 'grad':dx.tolist(), 'alpha':float(alpha), 'iter':i}
+            table.append({'method':'Steepest Descent', 'x':x.tolist(), 'fun':float(self.fun(x)), 'grad':dx.tolist(), 'alpha':float(alpha), 'iter':i})
+        return table[-1], pd.DataFrame(table)
     def _conjugateGradient(self) -> dict:
         '''Метод спряжених градієнтів'''
         x = np.asarray(self.x, dtype=float)
