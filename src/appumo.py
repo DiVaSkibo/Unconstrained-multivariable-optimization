@@ -6,7 +6,7 @@ from PIL import Image
 
 from src.ui import *
 from src.umo import UMO
-from src.plot import Plotview
+from src.widgets.plot import Plotview
 
 
 class Appumo(CTk):
