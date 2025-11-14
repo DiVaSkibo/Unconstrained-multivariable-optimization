@@ -1,5 +1,4 @@
 import math
-import pandas as pd
 import numpy as np
 
 from src.umo import UMO
@@ -19,12 +18,6 @@ def hesse(x) -> np.ndarray:
 
 if __name__ == "__main__":
     print('\n|| UNCONSTRAINED MULTIVARIABLE OPTIMIZATION ||\n')
-
-    umo = UMO(fun=fun, x=(.0, .0), grad=grad, hesse=hesse)
-    writer = pd.ExcelWriter('Table.xlsx')
-    for meth in umo.METHODS:
-        method = umo.METHODS[meth]
-        umo.solve(method)
-        #umo.displayResult()
-        umo.table.to_excel(writer, sheet_name=meth)
-    writer._save()
+    
+    appumo = Appumo(UMO(fun=fun, x=(.0, .0), grad=grad, hesse=hesse))
+    appumo.mainloop()
