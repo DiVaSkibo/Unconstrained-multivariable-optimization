@@ -73,14 +73,15 @@ class UMO:
         '''Метод найшвидшого спуску'''
         x = np.asarray(self.x, dtype=float)
         alpha = .0
+        dx = -self.grad(x)
         i = 0
-        table = [{'method':'Steepest Descent', 'x':x.tolist(), 'fun':float(self.fun(x)), 'grad':None, 'alpha':float(alpha), 'iter':i}]
+        table = []
         for i in range(self.MAXITER):
+            table.append({'method':'Steepest Descent', 'x':x.tolist(), 'fun':float(self.fun(x)), 'grad':dx.tolist(), 'alpha':float(alpha)})
             if LA.norm(self.grad(x)) < self.EPS: break
-            dx = -self.grad(x)
             alpha = self._armijo_line_search(x, dx)
             x += alpha * dx
-            table.append({'method':'Steepest Descent', 'x':x.tolist(), 'fun':float(self.fun(x)), 'grad':dx.tolist(), 'alpha':float(alpha), 'iter':i})
+            dx = -self.grad(x)
         return table[-1], pd.DataFrame(table)
     def _conjugateGradient(self) -> dict:
         '''Метод спряжених градієнтів'''
@@ -91,7 +92,7 @@ class UMO:
         i = 0
         table = []
         for i in range(self.MAXITER):
-            table.append({'method':'Conjugate Gradient', 'x':x.tolist(), 'fun':float(self.fun(x)), 'grad':dx.tolist(), 'alpha':float(alpha), 'gnorm':float(gnorm), 'iter':i})
+            table.append({'method':'Conjugate Gradient', 'x':x.tolist(), 'fun':float(self.fun(x)), 'grad':dx.tolist(), 'alpha':float(alpha), 'gnorm':float(gnorm)})
             if gnorm < self.EPS: break
             alpha = self._armijo_line_search(x, dx)
             x += alpha * dx
@@ -109,7 +110,7 @@ class UMO:
         i = 0
         table = []
         for i in range(self.MAXITER):
-            table.append({'method':'Newton', 'x':x.tolist(), 'fun':float(self.fun(x)), 'grad':dx.tolist(), 'hesse':self.hesse(x).tolist(), 'gnorm':float(gnorm), 'iter':i})
+            table.append({'method':'Newton', 'x':x.tolist(), 'fun':float(self.fun(x)), 'grad':dx.tolist(), 'hesse':self.hesse(x).tolist(), 'gnorm':float(gnorm)})
             if gnorm < self.EPS: break
             x += deltax
             dx = self.grad(x)
@@ -125,7 +126,7 @@ class UMO:
         i = 0
         table = []
         for i in range(self.MAXITER):
-            table.append({'method':'Quasi-Newton', 'x':x.tolist(), 'fun':float(self.fun(x)), 'grad':dx.tolist(), 'hesse':self.hesse(x).tolist(), 'gnorm':float(gnorm), 'iter':i})
+            table.append({'method':'Quasi-Newton', 'x':x.tolist(), 'fun':float(self.fun(x)), 'grad':dx.tolist(), 'hesse':self.hesse(x).tolist(), 'gnorm':float(gnorm)})
             if gnorm < self.EPS: break
             direction = -H @ dx
             alpha = self._armijo_line_search(x, direction)
