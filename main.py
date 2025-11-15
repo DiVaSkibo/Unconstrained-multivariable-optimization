@@ -34,22 +34,9 @@ if __name__ == "__main__":
     root.rowconfigure(0, weight=1)
     root.columnconfigure(0, weight=1)
     
-    tableview = Tableview(master=root)
+    def out(iteration:dict): print(iteration)
+    tableview = Tableview(master=root, signal=out)
     tableview.grid(sticky=NSEW)
-    tableview.panda(panda)
-
-    panda = pd.DataFrame({
-            'Aaa':[11111, 222, 33, 4444, 5],
-            'Bbb':[1111, 2222, 333, 44, 555],
-            'Ccc':[11, 22222, 3, 444, 5555],
-            'Ddd':[1111, 2222, 3333, 4444, 5555]})
-
-    tableview.panda(panda)
-
-    panda = pd.DataFrame({
-            'AaaA':[11111, 222],
-            'BbbB':[1111, 2222]})
-
     tableview.panda(panda)
     
     root.mainloop()
