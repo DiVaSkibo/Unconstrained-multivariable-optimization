@@ -6,6 +6,7 @@ from PIL import Image
 
 from src.ui import *
 from src.umo import UMO
+from src.widgets.table import Tableview
 from src.widgets.plot import Plotview
 
 
@@ -36,6 +37,7 @@ class Appumo(CTk):
     self.ui = ui
     self.title('Багатовимірна безумовна оптимізація')
     self.minsize(1000, 625)
+    self.after(0, lambda:self.state('zoomed'))
     self.rowconfigure(1, weight=1)
     self.columnconfigure(0, weight=1)
     set_default_color_theme('style.json')
@@ -165,7 +167,7 @@ class Appumo(CTk):
       # заголовок
     CTkLabel(master=self.frm_table, text='ТАБЛИЦЯ', font=self.ui.FONT_HEADER()).grid(row=0, column=0, sticky=EW, pady=10)
       # таблиця
-    self.table = CTkTextbox(master=self.frm_table, state=DISABLED, width=275)
+    self.table = Tableview(master=self.frm_table, bg_color='red')
     self.table.grid(row=1, column=0, sticky=NSEW)
   def _buildPlot(self, tab:str=None):
     '''Будування форми для Графіку'''
@@ -214,18 +216,7 @@ class Appumo(CTk):
     self.umo.solve(UMO.METHODS[self.Method.get()])
       # виведення результату
     self.umo.displayResult()
-    self.table.configure(state=NORMAL)
-    self.table.delete('0.0', END)
-    tres = ''
-    for key in self.umo.result:
-        value = self.umo.result[key]
-        if type(value) == float: value = round(value, 4)
-        elif type(value) == list:
-            if type(value[0]) == float: value = [round(v, 4) for v in value]
-            elif type(value[0]) == list: value = [[round(w, 4) for w in v] for v in value]
-        tres += f'{key}\t=      {value}\n'
-    self.table.insert('0.0', tres)
-    self.table.configure(state=DISABLED)
+    self.table.panda(self.umo.table)
   
   def switchTheme(self, theme:Theme=None, is_recover:bool=True):
     '''Перемикання теми (Темна <-> Світла)'''
