@@ -54,6 +54,7 @@ class Appumo(CTk):
     curtab = self.plotview._current_name
     self.frm_plot.destroy()
     self._buildPlot(curtab)
+    self.table.recover()
   
   def _buildTitle(self):
     '''Будування Титульної форми'''
@@ -167,7 +168,7 @@ class Appumo(CTk):
       # заголовок
     CTkLabel(master=self.frm_table, text='ТАБЛИЦЯ', font=self.ui.FONT_HEADER()).grid(row=0, column=0, sticky=EW, pady=10)
       # таблиця
-    self.table = Tableview(master=self.frm_table, bg_color='red')
+    self.table = Tableview(master=self.frm_table, ui=self.ui, bg_color='red')
     self.table.grid(row=1, column=0, sticky=NSEW)
   def _buildPlot(self, tab:str=None):
     '''Будування форми для Графіку'''

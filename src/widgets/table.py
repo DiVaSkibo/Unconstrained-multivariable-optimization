@@ -2,19 +2,27 @@ import pandas as pd
 from customtkinter import *
 from PIL import Image
 
+from src.ui import *
+
 
 class Tableview(CTkScrollableFrame):
-    def __init__(self, master, signal:callable=None, width = 600, height = 600, corner_radius = None, border_width = None, bg_color = 'transparent', fg_color = None, border_color = None, background_corner_colors = None, overwrite_preferred_drawing_method = None, **kwargs):
+    def __init__(self, master, ui:UI, signal:callable=None, width = 600, height = 600, corner_radius = None, border_width = None, bg_color = 'transparent', fg_color = None, border_color = None, background_corner_colors = None, overwrite_preferred_drawing_method = None, **kwargs):
         super().__init__(master, width, height, corner_radius, border_width, bg_color, fg_color, border_color, background_corner_colors, overwrite_preferred_drawing_method, **kwargs)
+        self.ui = ui
         self.signal = signal
         self.table = None
         self.Iter = IntVar(value=0)
+        self.tabs = []
     
     def clear(self):
         self.table = None
         self.Iter.set(0)
+        self.tabs = []
         for child in self.winfo_children():
             child.destroy()
+    def recover(self):
+        for tab in self.tabs:
+            tab.configure(fg_color=self.ui.BG_ACCENT())
     
     def iteration(self) -> dict:
         return self.table.iloc[self.Iter.get()].to_dict()
@@ -28,12 +36,13 @@ class Tableview(CTkScrollableFrame):
             else:
                 self.iteration()
         self.clear()
-        self.table = table    
+        self.table = table
         next_png = Image.open('icons/next.png')
         icon = CTkImage(dark_image=next_png, light_image=next_png, size=(15, 15))
         btn = CTkButton(master=self, command=on_next, image=icon, text='', width=15, height=15)
         btn.grid(padx=1.6, sticky=W)
         btn.image = icon
+        self.tabs = []
         for j, key in zip(range(len(self.table.keys())), self.table.keys()):
             if key == 'method': continue
             match key:
@@ -41,12 +50,12 @@ class Tableview(CTkScrollableFrame):
                 case 'fun' | 'gnorm': width = 75
                 case 'hesse': width = 130
                 case 'alpha': width = 55
-            entk = CTkEntry(master=self, width=width, fg_color='#2A2A4A')
-            entk.grid(row=0, column=j)
-            entk.insert(0, f'{key}')
-            entk.configure(state=DISABLED)
+            self.tabs.append(CTkEntry(master=self, width=width, fg_color=self.ui.BG_ACCENT()))
+            self.tabs[-1].grid(row=0, column=j)
+            self.tabs[-1].insert(0, f'{key}')
+            self.tabs[-1].configure(state=DISABLED)
         for i, row in self.table.iterrows():
-            CTkRadioButton(master=self, value=i, variable=self.Iter, command=on_radio_changed, text=f'{i}', width=20, height=20, radiobutton_width=15, radiobutton_height=15).grid(row=i+1, column=0, padx=10)
+            CTkRadioButton(master=self, value=i, variable=self.Iter, command=on_radio_changed, text=f'{i}', width=40, height=20, radiobutton_width=15, radiobutton_height=15).grid(row=i+1, column=0, padx=6, pady=3, sticky=N)
             for j, value in zip(range(len(row)), row):
                 if type(value) is str: continue
                 match self.table.keys()[j]:
@@ -62,7 +71,7 @@ class Tableview(CTkScrollableFrame):
                         val = '\t'.join([f'{v:.3f}' for v in val])
                         val = f'{'\t'.join([f'{v:.3f}' for v in value[0]])}\n{'\t'.join([f'{v:.3f}' for v in value[1]])}'
                         txbxv = CTkTextbox(master=self, width=width, height=50)
-                        txbxv.grid(row=i+1, column=j)
+                        txbxv.grid(row=i+1, column=j, sticky=N)
                         txbxv.insert('1.0', val)
                         txbxv.configure(state=DISABLED)
                         continue
@@ -70,6 +79,6 @@ class Tableview(CTkScrollableFrame):
                         width = 55
                         val = f'{value:.3f}'
                 entv = CTkEntry(master=self, width=width)
-                entv.grid(row=i+1, column=j)
+                entv.grid(row=i+1, column=j, sticky=N)
                 entv.insert(0, val)
                 entv.configure(state=DISABLED)

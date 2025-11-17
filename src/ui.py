@@ -26,7 +26,8 @@ class UI:
     cmapi = 0
     cmap = lambda self: self.CMAPS[self.cmapi]
     FG = lambda self: '#ffffff' if self.theme == Theme.Dark else '#000000'
-    BG = lambda self: '#131326' if self.theme == Theme.Dark else "#e5e5cc"
+    BG = lambda self: '#131326' if self.theme == Theme.Dark else '#e5e5cc'
+    BG_ACCENT = lambda self: '#2A2A4A' if self.theme == Theme.Dark else '#B5B59A'
     FONT_FAMILY = 'Georgia'
     FONT_TITLE = lambda self: (self.FONT_FAMILY, 28, 'bold')
     FONT_HEADER = lambda self: (self.FONT_FAMILY, 18, 'bold')
