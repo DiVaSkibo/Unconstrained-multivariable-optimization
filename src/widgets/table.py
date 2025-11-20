@@ -16,7 +16,6 @@ class Tableview(CTkScrollableFrame):
     
     def clear(self):
         self.table = None
-        self.Iter.set(0)
         self.tabs = []
         for child in self.winfo_children():
             child.destroy()
@@ -28,13 +27,12 @@ class Tableview(CTkScrollableFrame):
         return self.table.iloc[self.Iter.get()].to_dict()
 
     def panda(self, table:pd.DataFrame):
+        def on_radio_changed():
+            if self.signal: self.signal(self.iteration())
+            else: self.iteration()
         def on_next():
             self.Iter.set((self.Iter.get() + 1) % len(self.table.values))
-        def on_radio_changed():
-            if self.signal:
-                self.signal(self.iteration())
-            else:
-                self.iteration()
+            on_radio_changed()
         self.clear()
         self.table = table
         next_png = Image.open('icons/next.png')
@@ -48,7 +46,7 @@ class Tableview(CTkScrollableFrame):
             match key:
                 case 'x' | 'grad': width = 130
                 case 'fun' | 'gnorm': width = 75
-                case 'hesse': width = 130
+                case 'hesse': width = 135
                 case 'alpha': width = 55
             self.tabs.append(CTkEntry(master=self, width=width, fg_color=self.ui.BG_ACCENT()))
             self.tabs[-1].grid(row=0, column=j)
@@ -66,7 +64,7 @@ class Tableview(CTkScrollableFrame):
                         width = 75
                         val = f'{value:.3f}'
                     case 'hesse':
-                        width = 130
+                        width = 135
                         val = [v for vv in value for v in vv]
                         val = '\t'.join([f'{v:.3f}' for v in val])
                         val = f'{'\t'.join([f'{v:.3f}' for v in value[0]])}\n{'\t'.join([f'{v:.3f}' for v in value[1]])}'
@@ -82,3 +80,6 @@ class Tableview(CTkScrollableFrame):
                 entv.grid(row=i+1, column=j, sticky=N)
                 entv.insert(0, val)
                 entv.configure(state=DISABLED)
+
+        self.Iter.set(0)
+        on_radio_changed()

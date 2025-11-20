@@ -35,6 +35,8 @@ class Appumo(CTk):
     super().__init__()
     self.umo = umo
     self.ui = ui
+    self.tableveiw = None
+    self.plotview = None
     self.title('Багатовимірна безумовна оптимізація')
     self.minsize(1000, 625)
     self.after(0, lambda:self.state('zoomed'))
@@ -54,7 +56,7 @@ class Appumo(CTk):
     curtab = self.plotview._current_name
     self.frm_plot.destroy()
     self._buildPlot(curtab)
-    self.table.recover()
+    self.tableveiw.recover()
   
   def _buildTitle(self):
     '''Будування Титульної форми'''
@@ -119,8 +121,8 @@ class Appumo(CTk):
     self.Hesse = [[StringVar(value=hessestr[0]), StringVar(value=hessestr[1])], [StringVar(value=hessestr[2]), StringVar(value=hessestr[3])]]
     self.Eps = DoubleVar(value=self.umo.EPS)
     
-    self.Xlims = [DoubleVar(value=-7.5), DoubleVar(value=7.5)]
-    self.Ylims = [DoubleVar(value=-7.5), DoubleVar(value=7.5)]
+    self.Xlims = [DoubleVar(value=-5.), DoubleVar(value=5.)]
+    self.Ylims = [DoubleVar(value=-5.), DoubleVar(value=5.)]
     self.Zlims = [DoubleVar(value=-25.), DoubleVar(value=25.)]
     
       # будування підформ
@@ -161,6 +163,9 @@ class Appumo(CTk):
     CTkEntry(master=self.frm_input, textvariable=self.Eps, width=81).grid(row=12, column=1)
   def _buildTable(self):
     '''Будування форми для Таблиці'''
+    def on_iter_changed(it):
+      self._draw_way(it)
+    
     self.frm_table = CTkFrame(master=self.frm_main)
     self.frm_table.grid(row=0, column=2, sticky=NW, padx=20)
     self.frm_table.rowconfigure(1, weight=1)
@@ -168,11 +173,11 @@ class Appumo(CTk):
       # заголовок
     CTkLabel(master=self.frm_table, text='ТАБЛИЦЯ', font=self.ui.FONT_HEADER()).grid(row=0, column=0, sticky=EW, pady=10)
       # таблиця
-    self.table = Tableview(master=self.frm_table, ui=self.ui, bg_color='red')
-    self.table.grid(row=1, column=0, sticky=NSEW)
+    self.tableveiw = Tableview(master=self.frm_table, ui=self.ui, signal=on_iter_changed, bg_color='red')
+    self.tableveiw.grid(row=1, column=0, sticky=NSEW)
   def _buildPlot(self, tab:str=None):
     '''Будування форми для Графіку'''
-    def resizePlot(_):
+    def on_resize_plot(_):
       x = np.arange(self.Xlims[0].get(), self.Xlims[1].get(), .1)
       y = np.arange(self.Ylims[0].get(), self.Ylims[1].get(), .1)
       x, y = np.meshgrid(x, y)
@@ -197,12 +202,12 @@ class Appumo(CTk):
     self.plotview = Plotview(master=self.frm_plot, ui=self.ui, x=x, y=y, z=z, zlims=(self.Zlims[0].get(), self.Zlims[1].get()), tabset=tab)
     self.plotview.grid(row=0, column=0, sticky=NSEW)
       # слайдери
-    CTkSlider(self.frm_plot, command=resizePlot, from_=-100, to=0, number_of_steps=20, variable=self.Xlims[0], orientation=HORIZONTAL, height=10).grid(row=1, column=0, pady=4)
-    CTkSlider(self.frm_plot, command=resizePlot, from_=1, to=100, number_of_steps=20,  variable=self.Xlims[1], orientation=HORIZONTAL, height=10).grid(row=2, column=0)
-    CTkSlider(self.frm_plot, command=resizePlot, from_=-100, to=0, number_of_steps=20, variable=self.Ylims[0], orientation=VERTICAL, width=10).grid(row=0, column=1, padx=4)
-    CTkSlider(self.frm_plot, command=resizePlot, from_=1, to=100, number_of_steps=20,  variable=self.Ylims[1], orientation=VERTICAL, width=10).grid(row=0, column=2)
-    CTkSlider(self.frm_plot, command=resizePlot, from_=-100, to=0, number_of_steps=20, variable=self.Zlims[0], orientation=HORIZONTAL, height=10).grid(row=4, column=0, pady=4)
-    CTkSlider(self.frm_plot, command=resizePlot, from_=1, to=100, number_of_steps=20,  variable=self.Zlims[1], orientation=HORIZONTAL, height=10).grid(row=5, column=0)
+    CTkSlider(self.frm_plot, command=on_resize_plot, from_=-20, to=0, number_of_steps=20, variable=self.Xlims[0], orientation=HORIZONTAL, height=10).grid(row=1, column=0, pady=4)
+    CTkSlider(self.frm_plot, command=on_resize_plot, from_=1, to=20, number_of_steps=20,  variable=self.Xlims[1], orientation=HORIZONTAL, height=10).grid(row=2, column=0)
+    CTkSlider(self.frm_plot, command=on_resize_plot, from_=-20, to=0, number_of_steps=20, variable=self.Ylims[0], orientation=VERTICAL, width=10).grid(row=0, column=1, padx=4)
+    CTkSlider(self.frm_plot, command=on_resize_plot, from_=1, to=20, number_of_steps=20,  variable=self.Ylims[1], orientation=VERTICAL, width=10).grid(row=0, column=2)
+    CTkSlider(self.frm_plot, command=on_resize_plot, from_=-20, to=0, number_of_steps=20, variable=self.Zlims[0], orientation=HORIZONTAL, height=10).grid(row=4, column=0, pady=4)
+    CTkSlider(self.frm_plot, command=on_resize_plot, from_=1, to=20, number_of_steps=20,  variable=self.Zlims[1], orientation=HORIZONTAL, height=10).grid(row=5, column=0)
   
   def solve(self):
     '''Розрахунок задачі'''
@@ -217,7 +222,8 @@ class Appumo(CTk):
     self.umo.solve(UMO.METHODS[self.Method.get()])
       # виведення результату
     self.umo.displayResult()
-    self.table.panda(self.umo.table)
+    self.tableveiw.panda(self.umo.table)
+    self._draw_way()
   
   def switchTheme(self, theme:Theme=None, is_recover:bool=True):
     '''Перемикання теми (Темна <-> Світла)'''
@@ -228,6 +234,18 @@ class Appumo(CTk):
     '''Перемикання кольорової-мапи'''
     self.ui.cwitch()
     self.recover()
+  
+  def _draw_way(self, it=None):
+    iterrows = self.umo.table.T.to_dict()
+    self.plotview.clear()
+    for i in range(len(iterrows) - 1):
+      if iterrows[i+1] == it:
+        self.plotview.line(iterrows[i]['x'], iterrows[i]['fun'], iterrows[i+1]['x'], iterrows[i+1]['fun'], is_accent=True)
+      else:
+        self.plotview.line(iterrows[i]['x'], iterrows[i]['fun'], iterrows[i+1]['x'], iterrows[i+1]['fun'])
+    if it: self.plotview.dot(it['x'], it['fun'], is_accent=True)
+    else: self.plotview.dot(iterrows[0]['x'], iterrows[0]['fun'], is_accent=True)
+    
 
 
 def callexec(what:str, line:str|list) -> callable:

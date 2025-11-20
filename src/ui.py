@@ -17,6 +17,11 @@ class UI:
     
         FG - foreground
         BG - background
+        BG_ACCENT - background для акценту
+        DOT - колір точки на графіку
+        DOT_ACCENT - колір ключової точки на графіку
+        LINE - колір лінії на графіку
+        LINE_ACCENT - колір ключової лінії на графіку
         FONT_FAMILY - шрифт
         FONT_TITLE - шрифт головного тексту
         FONT_HEADER - шрифт заголовку
@@ -28,6 +33,10 @@ class UI:
     FG = lambda self: '#ffffff' if self.theme == Theme.Dark else '#000000'
     BG = lambda self: '#131326' if self.theme == Theme.Dark else '#e5e5cc'
     BG_ACCENT = lambda self: '#2A2A4A' if self.theme == Theme.Dark else '#B5B59A'
+    DOT = lambda self: 'lightyellow' if self.theme == Theme.Dark else 'navy'
+    DOT_ACCENT = lambda self: 'yellow' if self.theme == Theme.Dark else 'royalblue'
+    LINE = lambda self: 'aquamarine' if self.theme == Theme.Dark else 'teal'
+    LINE_ACCENT = lambda self: 'orangered' if self.theme == Theme.Dark else 'limegreen'
     FONT_FAMILY = 'Georgia'
     FONT_TITLE = lambda self: (self.FONT_FAMILY, 28, 'bold')
     FONT_HEADER = lambda self: (self.FONT_FAMILY, 18, 'bold')
@@ -45,5 +54,6 @@ class UI:
         return self.theme
     
     def cwitch(self) -> str:
+        '''Перемикання колорової-мапи для графіку'''
         self.cmapi = (self.cmapi + 1) % len(self.CMAPS)
         return self.cmap()

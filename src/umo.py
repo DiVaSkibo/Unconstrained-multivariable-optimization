@@ -11,7 +11,7 @@ class UMO:
 
         1. umo = UMO(fun: callable, x: tuple | list = (.0,.0), grad: callable = None, hesse: callable = None, eps: float = 1e-3, maxiter: int = 1000)
         2. umo.solve(method: str)
-        3. umo.displayResult() | result = umo.result
+        3. umo.displayResult() | result = umo.result | table = umo.table
     '''
 
     METHODS = {'Найшвидшого спуску':'Steepest Descent',
@@ -57,18 +57,6 @@ class UMO:
             if key == 'method': print(f' Method: {self.result[key]}')
             else: print(f'  {key}\t   =\t {self.result[key]}')
         print()
-    def tableResult(self):
-        rtable = [f'{round(self.result['fun'], 4)}']
-        for key in ('x', 'grad', 'hesse', 'alpha', 'gnorm', 'iter'):
-            if key in self.result:
-                value = self.result[key]
-                if type(value) == float: value = round(value, 4)
-                elif type(value) == list:
-                    if type(value[0]) == float: value = [round(v, 4) for v in value]
-                    elif type(value[0]) == list: value = [[round(w, 4) for w in v] for v in value]
-                rtable.append(f'{value}')
-        space = int(3 * len(' '.join(rtable)) / len(rtable))
-        return (' '*space).join(rtable)
     
     def _steepestDescent(self):
         '''Метод найшвидшого спуску'''

@@ -2,7 +2,6 @@ import math
 import numpy as np
 
 from src.umo import UMO
-from src.ui import *
 from src.appumo import Appumo
 
 
