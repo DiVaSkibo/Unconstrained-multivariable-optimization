@@ -28,16 +28,19 @@ class Plotview(CTkTabview):
       self.Plots[tab] = None
       self.Canvases[tab] = None
       self.CanvasWidgets[tab] = None
-      self._plotTab(tab, x, y, z, zlims)
+      self._buildTab(tab, x, y, z, zlims)
     self.set(tabset if tabset else self.TABS[0])
   
+  def draw(self):
+    for tab in self.TABS:
+      self.Canvases[tab].draw()
   def clear(self):
     self.dots.clear()
     self.lines.clear()
     for tab in self.TABS:
       for marker in [p for p in self.Plots[tab].collections if type(p) in (PathCollection, Line2D)]:
         marker.remove()
-
+  
   def dot(self, x, z, color:str=None, is_accent=False):
     if not color:
       color = self.ui.DOT_ACCENT() if is_accent else self.ui.DOT()
@@ -56,7 +59,6 @@ class Plotview(CTkTabview):
           self.Plots[tab].scatter(x[0], x[1], z, color=color, s=25, depthshade=False)
         case 'Заповнений':
           self.Plots[tab].scatter(x[0], x[1], color=color, s=25, zorder=10)
-      self.Canvases[tab].draw()
   def line(self, x0, z0, x1, z1, color:str=None, is_accent=False):
     if not color:
       color = self.ui.LINE_ACCENT() if is_accent else self.ui.LINE()
@@ -75,56 +77,53 @@ class Plotview(CTkTabview):
           self.Plots[tab].plot([x0[0], x1[0]], [x0[1], x1[1]], color=color, linewidth=2, zorder=10)[0]
           self.Plots[tab].scatter(x0[0], x0[1], color=self.ui.DOT(), s=25, zorder=10)
           self.Plots[tab].scatter(x1[0], x1[1], color=self.ui.DOT(), s=25, zorder=10)
-      self.Canvases[tab].draw()
+  def contour(self, tab:str, x, y, z, zlims):
+    if self.Plots[tab].collections:
+      con = self.Plots[tab].collections[0]
+      con.remove()
+    self.Plots[tab].set_xlim((x[0][0], x[-1][-1]))
+    self.Plots[tab].set_ylim((y[0][0], y[-1][-1]))
+    match tab:
+      case 'Плоский':
+        con = self.Plots[tab].contour(x, y, z, levels=10)
+      case 'Об\'ємний':
+        self.Plots[tab].set_zlim(zlims)
+        con = self.Plots[tab].plot_surface(x, y, z, linewidth=0, cmap='viridis', alpha=.75, shade=False, axlim_clip=True)
+      case 'Заповнений':
+        con = self.Plots[tab].contourf(x, y, z, levels=10, alpha=.75)
   
-  def _plotTab(self, tab:str, x, y, z, zlims):
+  def resize(self, x, y, z, zlims):
+    for tab in self.TABS:
+      self.contour(tab, x, y, z, zlims)
+      self.cmap(tab)
+      self.Canvases[tab].draw()
+  def theme(self, tab:str):
+    self.Plots[tab].set_facecolor(self.ui.BG())
+    if tab == 'Об\'ємний':
+      self.Plots[tab].xaxis.pane.set_facecolor(self.ui.BG())
+      self.Plots[tab].yaxis.pane.set_facecolor(self.ui.BG())
+      self.Plots[tab].zaxis.pane.set_facecolor(self.ui.BG())
+    self.Plots[tab].tick_params(colors=self.ui.FG())
+    self.Plots[tab].grid(color=self.ui.FG())
+  def cmap(self, tab:str=None):
+    if tab:
+      self.Plots[tab].collections[0].set_cmap(self.ui.cmap())
+    else:
+      for tab in self.TABS:
+        self.Plots[tab].collections[0].set_cmap(self.ui.cmap())
+  
+  def _buildTab(self, tab:str, x, y, z, zlims):
     '''Побудова графіку відповідно до вкладки'''
       # фігура
     self.Figures[tab] = Figure(figsize=(5, 5), dpi=100, constrained_layout=True, facecolor=self.ui.BG())
       # фабула, параметризація фабули
-    match tab:
-      case 'Плоский':
-        self.Plots[tab] = self.Figures[tab].add_subplot(111, facecolor=self.ui.BG())
-        self.Plots[tab].contour(x, y, z, levels=10, cmap=self.ui.cmap())
-      case 'Об\'ємний':
-        self.Plots[tab] = self.Figures[tab].add_subplot(111, projection='3d', facecolor=self.ui.BG())
-        self.Plots[tab].set_zlim(zlims)
-        self.Plots[tab].plot_surface(x, y, z, linewidth=0, cmap=self.ui.cmap(), alpha=.75, shade=False, axlim_clip=True)
-        self.Plots[tab].xaxis.pane.set_facecolor(self.ui.BG())
-        self.Plots[tab].yaxis.pane.set_facecolor(self.ui.BG())
-        self.Plots[tab].zaxis.pane.set_facecolor(self.ui.BG())
-      case 'Заповнений':
-        self.Plots[tab] = self.Figures[tab].add_subplot(111, facecolor=self.ui.BG())
-        self.Plots[tab].contourf(x, y, z, levels=10, cmap=self.ui.cmap(), alpha=.75)
-    self.Plots[tab].tick_params(colors=self.ui.FG())
-    self.Plots[tab].grid(color=self.ui.FG())
+    self.Plots[tab] = self.Figures[tab].add_subplot(111, projection='3d' if tab == 'Об\'ємний' else 'rectilinear', facecolor=self.ui.BG())
+    self.contour(tab, x, y, z, zlims)
+    self.theme(tab)
+    self.cmap(tab)
       # полотно
     self.Canvases[tab] = FigureCanvasTkAgg(self.Figures[tab], master=self.tab(tab))
+    self.Canvases[tab].draw()
     self.CanvasWidgets[tab] = self.Canvases[tab].get_tk_widget()
     self.CanvasWidgets[tab].configure(bg=self.ui.BG(), highlightthickness=0)
     self.CanvasWidgets[tab].pack(fill=BOTH, expand=True)
-  
-  def resize(self, x, y, z, zlims):
-    for tab in self.TABS:
-      self.Plots[tab].clear()
-      match tab:
-        case 'Плоский':
-          self.Plots[tab].contour(x, y, z, levels=10, cmap=self.ui.cmap())
-        case 'Об\'ємний':
-          self.Plots[tab].set_zlim(zlims)
-          self.Plots[tab].plot_surface(x, y, z, linewidth=0, cmap=self.ui.cmap(), shade=False)
-          self.Plots[tab].xaxis.pane.set_facecolor(self.ui.BG())
-          self.Plots[tab].yaxis.pane.set_facecolor(self.ui.BG())
-          self.Plots[tab].zaxis.pane.set_facecolor(self.ui.BG())
-        case 'Заповнений':
-          self.Plots[tab].contourf(x, y, z, levels=10, cmap=self.ui.cmap())
-      self.Plots[tab].tick_params(colors=self.ui.FG())
-      self.Plots[tab].grid(color=self.ui.FG())
-        # полотно
-      self.Canvases[tab] = FigureCanvasTkAgg(self.Figures[tab], master=self.tab(tab))
-      self.Canvases[tab].draw()
-      self.CanvasWidgets[tab].destroy()
-      self.CanvasWidgets[tab] = self.Canvases[tab].get_tk_widget()
-      self.CanvasWidgets[tab].pack(fill=BOTH, expand=True)
-    #for dot in self.dots: self.dot(dot['x'], dot['z'], dot['color'])
-    #for line in self.lines: self.line(line['x0'], line['z0'], line['x1'], line['z1'], line['color'])

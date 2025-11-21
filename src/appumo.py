@@ -233,8 +233,10 @@ class Appumo(CTk):
   def switchColormap(self):
     '''Перемикання кольорової-мапи'''
     self.ui.cwitch()
-    self.recover()
+    self.plotview.cmap()
+    self.plotview.draw()
   
+  # !!! IT REDRAWS ALL DOTS AND LINES
   def _draw_way(self, it=None):
     iterrows = self.umo.table.T.to_dict()
     self.plotview.clear()
@@ -245,7 +247,7 @@ class Appumo(CTk):
         self.plotview.line(iterrows[i]['x'], iterrows[i]['fun'], iterrows[i+1]['x'], iterrows[i+1]['fun'])
     if it: self.plotview.dot(it['x'], it['fun'], is_accent=True)
     else: self.plotview.dot(iterrows[0]['x'], iterrows[0]['fun'], is_accent=True)
-    
+    self.plotview.draw()
 
 
 def callexec(what:str, line:str|list) -> callable:
