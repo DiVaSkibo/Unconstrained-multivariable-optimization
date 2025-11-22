@@ -164,7 +164,7 @@ class Appumo(CTk):
   def _buildTable(self):
     '''Будування форми для Таблиці'''
     def on_iter_changed(it):
-      self._draw_way(it)
+      self.plotview.route(path=list(self.umo.table.T.to_dict().values()), curloc=it, is_init=False)
     
     self.frm_table = CTkFrame(master=self.frm_main)
     self.frm_table.grid(row=0, column=2, sticky=NW, padx=20)
@@ -223,7 +223,7 @@ class Appumo(CTk):
       # виведення результату
     self.umo.displayResult()
     self.tableveiw.panda(self.umo.table)
-    self._draw_way()
+    self.plotview.route(path=list(self.umo.table.T.to_dict().values()))
   
   def switchTheme(self, theme:Theme=None, is_recover:bool=True):
     '''Перемикання теми (Темна <-> Світла)'''
@@ -235,20 +235,6 @@ class Appumo(CTk):
     self.ui.cwitch()
     self.plotview.cmap()
     self.plotview.draw()
-  
-  # !!! IT REDRAWS ALL DOTS AND LINES
-  def _draw_way(self, it=None):
-    iterrows = self.umo.table.T.to_dict()
-    self.plotview.clear()
-    for i in range(len(iterrows) - 1):
-      if iterrows[i+1] == it:
-        self.plotview.line(iterrows[i]['x'], iterrows[i]['fun'], iterrows[i+1]['x'], iterrows[i+1]['fun'], is_accent=True)
-      else:
-        self.plotview.line(iterrows[i]['x'], iterrows[i]['fun'], iterrows[i+1]['x'], iterrows[i+1]['fun'])
-    if it: self.plotview.dot(it['x'], it['fun'], is_accent=True)
-    else: self.plotview.dot(iterrows[0]['x'], iterrows[0]['fun'], is_accent=True)
-    self.plotview.draw()
-
 
 def callexec(what:str, line:str|list) -> callable:
   namespace = {'sqrt':math.sqrt, 'np':np}

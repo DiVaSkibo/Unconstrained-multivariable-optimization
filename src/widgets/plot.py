@@ -1,8 +1,9 @@
 from customtkinter import *
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib.contour import QuadContourSet
 from matplotlib.collections import PathCollection
-from matplotlib.lines import Line2D
+from mpl_toolkits.mplot3d.art3d import (Poly3DCollection, Path3DCollection)
 
 from src.ui import *
 
@@ -16,8 +17,6 @@ class Plotview(CTkTabview):
     
     self.Figures = {}
     self.Plots = {}
-    self.dots = []
-    self.lines = []
     self.Canvases = {}
     self.CanvasWidgets = {}
     for tab in self.TABS:
@@ -35,48 +34,55 @@ class Plotview(CTkTabview):
     for tab in self.TABS:
       self.Canvases[tab].draw()
   def clear(self):
-    self.dots.clear()
-    self.lines.clear()
     for tab in self.TABS:
-      for marker in [p for p in self.Plots[tab].collections if type(p) in (PathCollection, Line2D)]:
-        marker.remove()
-  
+      for dot in [p for p in self.Plots[tab].collections if type(p) in (PathCollection, Path3DCollection)]:
+        dot.remove()
+      for line in self.Plots[tab].lines:
+        line.remove()  
   def dot(self, x, z, color:str=None, is_accent=False):
     if not color:
       color = self.ui.DOT_ACCENT() if is_accent else self.ui.DOT()
-    dot = {'x':x, 'z':z}
-    isame = next(( i for i, d in enumerate(self.dots) if all(d[key] == dot[key] for key in dot)), -1)
-    if isame == -1:
-      dot['color'] = color
-      self.dots.append(dot)
+    for tab in self.TABS:
+      match tab:
+        case 'Плоский' | 'Заповнений':
+          self.Plots[tab].scatter(x[0], x[1], color=color, s=25, zorder=40)
+        case 'Об\'ємний':
+          self.Plots[tab].scatter(x[0], x[1], z, color=color, s=25, zorder=40, depthshade=False)
+  def line(self, x0, z0, x1, z1, is_accent=False):
+    liclr = self.ui.LINE_ACCENT() if is_accent else self.ui.LINE()
+    doclr = self.ui.DOT_ACCENT() if is_accent else self.ui.DOT()
+    for tab in self.TABS:
+      match tab:
+        case 'Плоский' | 'Заповнений':
+          self.Plots[tab].plot([x0[0], x1[0]], [x0[1], x1[1]], color=liclr, linewidth=2, zorder=10)[0]
+          self.Plots[tab].scatter(x0[0], x0[1], color=self.ui.DOT(), s=25, zorder=10)
+          self.Plots[tab].scatter(x1[0], x1[1], color=doclr, s=25, zorder=20)
+        case 'Об\'ємний':
+          self.Plots[tab].plot([x0[0], x1[0]], [x0[1], x1[1]], [z0, z1], color=liclr, linewidth=2)[0]
+          self.Plots[tab].scatter(x0[0], x0[1], z0, color=self.ui.DOT(), s=25, zorder=10, depthshade=False)
+          self.Plots[tab].scatter(x1[0], x1[1], z1, color=doclr, s=25, zorder=20, depthshade=False)
+  def route(self, path:dict, curloc=None, is_init=True):
+    if is_init:
+      self.clear()
+      self.dot(path[0]['x'], path[0]['fun'], is_accent=True)
+      for i in range(len(path) - 1):
+        loc0 = path[i]
+        loc1 = path[i + 1]
+        if loc1 == curloc:
+          self.line(loc0['x'], loc0['fun'], loc1['x'], loc1['fun'], is_accent=True)
+        else:
+          self.line(loc0['x'], loc0['fun'], loc1['x'], loc1['fun'])
     else:
-      self.dots[isame]['color'] = color
-    for tab in self.TABS:
-      match tab:
-        case 'Плоский':
-          self.Plots[tab].scatter(x[0], x[1], color=color, s=25, zorder=10)
-        case 'Об\'ємний':
-          self.Plots[tab].scatter(x[0], x[1], z, color=color, s=25, depthshade=False)
-        case 'Заповнений':
-          self.Plots[tab].scatter(x[0], x[1], color=color, s=25, zorder=10)
-  def line(self, x0, z0, x1, z1, color:str=None, is_accent=False):
-    if not color:
-      color = self.ui.LINE_ACCENT() if is_accent else self.ui.LINE()
-    self.lines.append({'x0':x0, 'z0':z0, 'x1':x1, 'z1':z1, 'color':color})
-    for tab in self.TABS:
-      match tab:
-        case 'Плоский':
-          self.Plots[tab].plot([x0[0], x1[0]], [x0[1], x1[1]], color=color, linewidth=2, zorder=10)[0]
-          self.Plots[tab].scatter(x0[0], x0[1], color=self.ui.DOT(), s=25, zorder=10)
-          self.Plots[tab].scatter(x1[0], x1[1], color=self.ui.DOT(), s=25, zorder=10)
-        case 'Об\'ємний':
-          self.Plots[tab].plot([x0[0], x1[0]], [x0[1], x1[1]], [z0, z1], color=color, linewidth=2)[0]
-          self.Plots[tab].scatter(x0[0], x0[1], z0, color=self.ui.DOT(), s=25, zorder=10)
-          self.Plots[tab].scatter(x1[0], x1[1], z1, color=self.ui.DOT(), s=25, zorder=10)
-        case 'Заповнений':
-          self.Plots[tab].plot([x0[0], x1[0]], [x0[1], x1[1]], color=color, linewidth=2, zorder=10)[0]
-          self.Plots[tab].scatter(x0[0], x0[1], color=self.ui.DOT(), s=25, zorder=10)
-          self.Plots[tab].scatter(x1[0], x1[1], color=self.ui.DOT(), s=25, zorder=10)
+      icurloc = path.index(curloc) if curloc else 0
+      for tab in self.TABS:
+        dots = [p for p in self.Plots[tab].collections if type(p) in (PathCollection, Path3DCollection)]
+        dots20 = list(filter(lambda x: x.zorder > 10, dots))
+        for i, dot in zip(range(len(dots20)), dots20):
+          dot.set_color(self.ui.DOT_ACCENT() if i == icurloc else self.ui.DOT())
+        lines = self.Plots[tab].lines
+        for i, line in zip(range(len(lines)), lines):
+          line.set_color(self.ui.LINE_ACCENT() if i+1 == icurloc else self.ui.LINE())
+    self.draw()
   def contour(self, tab:str, x, y, z, zlims):
     if self.Plots[tab].collections:
       con = self.Plots[tab].collections[0]
@@ -92,11 +98,6 @@ class Plotview(CTkTabview):
       case 'Заповнений':
         con = self.Plots[tab].contourf(x, y, z, levels=10, alpha=.75)
   
-  def resize(self, x, y, z, zlims):
-    for tab in self.TABS:
-      self.contour(tab, x, y, z, zlims)
-      self.cmap(tab)
-      self.Canvases[tab].draw()
   def theme(self, tab:str):
     self.Plots[tab].set_facecolor(self.ui.BG())
     if tab == 'Об\'ємний':
@@ -107,10 +108,17 @@ class Plotview(CTkTabview):
     self.Plots[tab].grid(color=self.ui.FG())
   def cmap(self, tab:str=None):
     if tab:
-      self.Plots[tab].collections[0].set_cmap(self.ui.cmap())
+      for con in [p for p in self.Plots[tab].collections if type(p) in (QuadContourSet, Poly3DCollection)]:
+        con.set_cmap(self.ui.cmap())
     else:
       for tab in self.TABS:
-        self.Plots[tab].collections[0].set_cmap(self.ui.cmap())
+        for con in [p for p in self.Plots[tab].collections if type(p) in (QuadContourSet, Poly3DCollection)]:
+          con.set_cmap(self.ui.cmap())
+  def resize(self, x, y, z, zlims):
+    for tab in self.TABS:
+      self.contour(tab, x, y, z, zlims)
+      self.cmap(tab)
+      self.Canvases[tab].draw()
   
   def _buildTab(self, tab:str, x, y, z, zlims):
     '''Побудова графіку відповідно до вкладки'''
