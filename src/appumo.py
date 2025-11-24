@@ -121,9 +121,8 @@ class Appumo(CTk):
     self.Hesse = [[StringVar(value=hessestr[0]), StringVar(value=hessestr[1])], [StringVar(value=hessestr[2]), StringVar(value=hessestr[3])]]
     self.Eps = DoubleVar(value=self.umo.EPS)
     
-    self.Xlims = [DoubleVar(value=-5.), DoubleVar(value=5.)]
-    self.Ylims = [DoubleVar(value=-5.), DoubleVar(value=5.)]
-    self.Zlims = [DoubleVar(value=-25.), DoubleVar(value=25.)]
+    self.Offset = (DoubleVar(value=.0), DoubleVar(value=.0), DoubleVar(value=.0))
+    self.Scale = DoubleVar(value=5.)
     
       # будування підформ
     self._buildInput()
@@ -167,7 +166,7 @@ class Appumo(CTk):
       self.plotview.route(path=list(self.umo.table.T.to_dict().values()), curloc=it, is_init=False)
     
     self.frm_table = CTkFrame(master=self.frm_main)
-    self.frm_table.grid(row=0, column=2, sticky=NW, padx=20)
+    self.frm_table.grid(row=0, column=2, sticky=NW)
     self.frm_table.rowconfigure(1, weight=1)
     
       # заголовок
@@ -177,37 +176,26 @@ class Appumo(CTk):
     self.tableveiw.grid(row=1, column=0, sticky=NSEW)
   def _buildPlot(self, tab:str=None):
     '''Будування форми для Графіку'''
-    def on_resize_plot(_):
-      x = np.arange(self.Xlims[0].get(), self.Xlims[1].get(), .1)
-      y = np.arange(self.Ylims[0].get(), self.Ylims[1].get(), .1)
-      x, y = np.meshgrid(x, y)
-      z = np.array([self.umo.fun([xi, yi]) for (xi, yi) in zip(x, y)])
-      z = np.where((z < self.Zlims[0].get()) | (z > self.Zlims[1].get()), np.nan, z)
-      self.plotview.resize(x, y, z, (self.Zlims[0].get(), self.Zlims[1].get()))
-
+    def on_plot_resize(_):
+      x, y, z = self._axes()
+      self.plotview.resize(x, y, z)
+    
     self.frm_plot = CTkFrame(master=self.frm_main)
     self.frm_plot.grid(row=0, column=1, sticky=NSEW)
     self.frm_plot.rowconfigure(0, weight=1)
     self.frm_plot.columnconfigure(0, weight=1)
     self.frm_plot.rowconfigure(3, minsize=10)
-
+    
       # дані
-    self.umo.fun = callexec('fun', self.Fun)
-    x = np.arange(self.Xlims[0].get(), self.Xlims[1].get(), .1)
-    y = np.arange(self.Ylims[0].get(), self.Ylims[1].get(), .1)
-    x, y = np.meshgrid(x, y)
-    z = np.array([self.umo.fun([xi, yi]) for (xi, yi) in zip(x, y)])
-    z = np.where((z < self.Zlims[0].get()) | (z > self.Zlims[1].get()), np.nan, z)
+    x, y, z = self._axes()
       # фабула з вкладками
-    self.plotview = Plotview(master=self.frm_plot, ui=self.ui, x=x, y=y, z=z, zlims=(self.Zlims[0].get(), self.Zlims[1].get()), tabset=tab)
+    self.plotview = Plotview(master=self.frm_plot, ui=self.ui, x=x, y=y, z=z, tabset=tab)
     self.plotview.grid(row=0, column=0, sticky=NSEW)
       # слайдери
-    CTkSlider(self.frm_plot, command=on_resize_plot, from_=-20, to=0, number_of_steps=20, variable=self.Xlims[0], orientation=HORIZONTAL, height=10).grid(row=1, column=0, pady=4)
-    CTkSlider(self.frm_plot, command=on_resize_plot, from_=1, to=20, number_of_steps=20,  variable=self.Xlims[1], orientation=HORIZONTAL, height=10).grid(row=2, column=0)
-    CTkSlider(self.frm_plot, command=on_resize_plot, from_=-20, to=0, number_of_steps=20, variable=self.Ylims[0], orientation=VERTICAL, width=10).grid(row=0, column=1, padx=4)
-    CTkSlider(self.frm_plot, command=on_resize_plot, from_=1, to=20, number_of_steps=20,  variable=self.Ylims[1], orientation=VERTICAL, width=10).grid(row=0, column=2)
-    CTkSlider(self.frm_plot, command=on_resize_plot, from_=-20, to=0, number_of_steps=20, variable=self.Zlims[0], orientation=HORIZONTAL, height=10).grid(row=4, column=0, pady=4)
-    CTkSlider(self.frm_plot, command=on_resize_plot, from_=1, to=20, number_of_steps=20,  variable=self.Zlims[1], orientation=HORIZONTAL, height=10).grid(row=5, column=0)
+    CTkSlider(self.frm_plot, command=on_plot_resize, from_=-10., to=10., number_of_steps=20, variable=self.Offset[0], orientation=HORIZONTAL, height=10).grid(row=1, column=0, pady=4)
+    CTkSlider(self.frm_plot, command=on_plot_resize, from_=-10., to=10., number_of_steps=20, variable=self.Offset[1], orientation=VERTICAL, width=10).grid(row=0, column=1, padx=4)
+    CTkSlider(self.frm_plot, command=on_plot_resize, from_=-30., to=30., number_of_steps=60, variable=self.Offset[2], orientation=VERTICAL, width=10).grid(row=0, column=2, padx=4)
+    CTkSlider(self.frm_plot, command=on_plot_resize, from_=1., to=10., number_of_steps=10, variable=self.Scale, orientation=HORIZONTAL, height=10).grid(row=2, column=0, pady=4)
   
   def solve(self):
     '''Розрахунок задачі'''
@@ -224,6 +212,20 @@ class Appumo(CTk):
     self.umo.displayResult()
     self.tableveiw.panda(self.umo.table)
     self.plotview.route(path=list(self.umo.table.T.to_dict().values()))
+  
+  def _axes(self):
+    offset = (self.Offset[0].get(), self.Offset[1].get(), self.Offset[2].get())
+    scale = self.Scale.get()
+    xmin, xmax = offset[0] - scale, offset[0] + scale
+    ymin, ymax = offset[1] - scale, offset[1] + scale
+    zmin, zmax = offset[2] - 5 * scale, offset[2] + 5 * scale
+    x = np.arange(xmin, xmax, abs(xmax - xmin) / 100)
+    y = np.arange(ymin, ymax, abs(xmax - xmin) / 100)
+    x, y = np.meshgrid(x, y)
+    z = np.array([self.umo.fun([xi, yi]) for (xi, yi) in zip(x, y)])
+    z = np.where((z < zmin) | (z > zmax), np.nan, z)
+    return x, y, z
+
   
   def switchTheme(self, theme:Theme=None, is_recover:bool=True):
     '''Перемикання теми (Темна <-> Світла)'''

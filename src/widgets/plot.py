@@ -11,14 +11,15 @@ from src.ui import *
 class Plotview(CTkTabview):
   TABS = ('Плоский', 'Об\'ємний', 'Заповнений')
   
-  def __init__(self, master, ui:UI, x, y, z, zlims, tabset:str=None, width = 300, height = 250, corner_radius = None, border_width = None, bg_color = "transparent", fg_color = None, border_color = None, segmented_button_fg_color = None, segmented_button_selected_color = None, segmented_button_selected_hover_color = None, segmented_button_unselected_color = None, segmented_button_unselected_hover_color = None, text_color = None, text_color_disabled = None, command = None, anchor = "center", state = "normal", **kwargs):
+  def __init__(self, master, ui:UI, x, y, z, tabset:str=None, width = 300, height = 250, corner_radius = None, border_width = None, bg_color = "transparent", fg_color = None, border_color = None, segmented_button_fg_color = None, segmented_button_selected_color = None, segmented_button_selected_hover_color = None, segmented_button_unselected_color = None, segmented_button_unselected_hover_color = None, text_color = None, text_color_disabled = None, command = None, anchor = "center", state = "normal", **kwargs):
     super().__init__(master, width, height, corner_radius, border_width, bg_color, fg_color, border_color, segmented_button_fg_color, segmented_button_selected_color, segmented_button_selected_hover_color, segmented_button_unselected_color, segmented_button_unselected_hover_color, text_color, text_color_disabled, command, anchor, state, **kwargs)
     self.ui = ui
-    
+        
     self.Figures = {}
     self.Plots = {}
     self.Canvases = {}
     self.CanvasWidgets = {}
+    
     for tab in self.TABS:
       self.add(tab)
       self.tab(tab).rowconfigure(0, weight=1)
@@ -27,7 +28,7 @@ class Plotview(CTkTabview):
       self.Plots[tab] = None
       self.Canvases[tab] = None
       self.CanvasWidgets[tab] = None
-      self._buildTab(tab, x, y, z, zlims)
+      self._buildTab(tab, x, y, z)
     self.set(tabset if tabset else self.TABS[0])
   
   def draw(self):
@@ -83,20 +84,21 @@ class Plotview(CTkTabview):
         for i, line in zip(range(len(lines)), lines):
           line.set_color(self.ui.LINE_ACCENT() if i+1 == icurloc else self.ui.LINE())
     self.draw()
-  def contour(self, tab:str, x, y, z, zlims):
-    if self.Plots[tab].collections:
-      con = self.Plots[tab].collections[0]
-      con.remove()
+  def contour(self, tab:str, x, y, z):
+    cons = [p for p in self.Plots[tab].collections if type(p) in (QuadContourSet, Poly3DCollection)]
+    if cons:
+      con = cons[0]
+      for c in cons:
+        c.remove()
     self.Plots[tab].set_xlim((x[0][0], x[-1][-1]))
     self.Plots[tab].set_ylim((y[0][0], y[-1][-1]))
     match tab:
       case 'Плоский':
-        con = self.Plots[tab].contour(x, y, z, levels=10)
+        con = self.Plots[tab].contour(x, y, z, levels=15)
       case 'Об\'ємний':
-        self.Plots[tab].set_zlim(zlims)
         con = self.Plots[tab].plot_surface(x, y, z, linewidth=0, cmap='viridis', alpha=.75, shade=False, axlim_clip=True)
       case 'Заповнений':
-        con = self.Plots[tab].contourf(x, y, z, levels=10, alpha=.75)
+        con = self.Plots[tab].contourf(x, y, z, levels=15, alpha=.75)
   
   def theme(self, tab:str):
     self.Plots[tab].set_facecolor(self.ui.BG())
@@ -114,19 +116,20 @@ class Plotview(CTkTabview):
       for tab in self.TABS:
         for con in [p for p in self.Plots[tab].collections if type(p) in (QuadContourSet, Poly3DCollection)]:
           con.set_cmap(self.ui.cmap())
-  def resize(self, x, y, z, zlims):
+  def resize(self, x, y, z):
     for tab in self.TABS:
-      self.contour(tab, x, y, z, zlims)
+      self.contour(tab, x, y, z)
       self.cmap(tab)
       self.Canvases[tab].draw()
-  
-  def _buildTab(self, tab:str, x, y, z, zlims):
+
+  def _buildTab(self, tab:str, x, y, z):
     '''Побудова графіку відповідно до вкладки'''
       # фігура
-    self.Figures[tab] = Figure(figsize=(5, 5), dpi=100, constrained_layout=True, facecolor=self.ui.BG())
+    self.Figures[tab] = Figure(figsize=(20, 20), dpi=100, constrained_layout=True, facecolor=self.ui.BG())
+
       # фабула, параметризація фабули
     self.Plots[tab] = self.Figures[tab].add_subplot(111, projection='3d' if tab == 'Об\'ємний' else 'rectilinear', facecolor=self.ui.BG())
-    self.contour(tab, x, y, z, zlims)
+    self.contour(tab, x, y, z)
     self.theme(tab)
     self.cmap(tab)
       # полотно
