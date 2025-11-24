@@ -17,9 +17,12 @@ class Appumo(CTk):
   *Використання:*
   
       1. appumo = Appumo(umo: UMO, ui: UI = UI())
-      2. ...
-      3. appumo.recover() | appumo.destroy(); appumo.build()  # після налаштування/редагування
-      4. appumo.mainloop()
+      -. ...
+      -. appumo.switchTheme(theme : Theme = None, is_init : bool = False)
+      -. appumo.switchColormap():
+      -. ...
+      2. appumo.solve()
+      3. appumo.mainloop()
   '''
   def __init__(self, umo:UMO, ui:UI=UI()):
     '''
@@ -28,9 +31,12 @@ class Appumo(CTk):
     *Використання:*
     
         1. appumo = Appumo(umo: UMO, ui: UI = UI())
-        2. ...
-        3. appumo.recover() | appumo.destroy(); appumo.build()  # після налаштування/редагування
-        4. appumo.mainloop()
+        -. ...
+        -. appumo.switchTheme(theme : Theme = None, is_init : bool = False)
+        -. appumo.switchColormap():
+        -. ...
+        2. appumo.solve()
+        3. appumo.mainloop()
     '''
     super().__init__()
     self.umo = umo
@@ -43,25 +49,18 @@ class Appumo(CTk):
     self.rowconfigure(1, weight=1)
     self.columnconfigure(0, weight=1)
     set_default_color_theme('style.json')
-    self.switchTheme(self.ui.theme, False)
     self.configure(fg_color=self.ui.BG())
     self.build()
+    self.switchTheme(theme=self.ui.theme, is_init=True)
   
   def build(self):
     '''Будування додатку'''
     self._buildTitle()
     self._buildMain()
-  def recover(self):
-    '''Відновлення додатку'''
-    curtab = self.plotview._current_name
-    self.frm_plot.destroy()
-    self._buildPlot(curtab)
-    self.tableveiw.recover()
   
   def _buildTitle(self):
     '''Будування Титульної форми'''
     solve_png = Image.open('icons/solve.png')
-    recover_png = Image.open('icons/recover.png')
     theme_png = Image.open('icons/theme.png')
     colormap_png = Image.open('icons/colormap.png')
 
@@ -71,11 +70,6 @@ class Appumo(CTk):
       # іконка розв'язку
     icon = CTkImage(dark_image=solve_png, light_image=solve_png, size=(22, 22))
     btn = CTkButton(master=self.frm_title, command=self.solve, image=icon, text='', width=30, height=30)
-    btn.pack(side=LEFT)
-    btn.image = icon
-      # іконка відновлення
-    icon = CTkImage(dark_image=recover_png, light_image=recover_png, size=(30, 30))
-    btn = CTkButton(master=self.frm_title, command=self.recover, image=icon, text='', width=30, height=30)
     btn.pack(side=LEFT)
     btn.image = icon
       # заголовок
@@ -164,6 +158,7 @@ class Appumo(CTk):
     '''Будування форми для Таблиці'''
     def on_iter_changed(it):
       self.plotview.route(path=list(self.umo.table.T.to_dict().values()), curloc=it, is_init=False)
+      self.plotview.draw()
     
     self.frm_table = CTkFrame(master=self.frm_main)
     self.frm_table.grid(row=0, column=2, sticky=NW)
@@ -178,7 +173,7 @@ class Appumo(CTk):
     '''Будування форми для Графіку'''
     def on_plot_resize(_):
       x, y, z = self._axes()
-      self.plotview.resize(x, y, z)
+      self.plotview.plot(x, y, z)
     
     self.frm_plot = CTkFrame(master=self.frm_main)
     self.frm_plot.grid(row=0, column=1, sticky=NSEW)
@@ -192,28 +187,32 @@ class Appumo(CTk):
     self.plotview = Plotview(master=self.frm_plot, ui=self.ui, x=x, y=y, z=z, tabset=tab)
     self.plotview.grid(row=0, column=0, sticky=NSEW)
       # слайдери
-    CTkSlider(self.frm_plot, command=on_plot_resize, from_=-10., to=10., number_of_steps=20, variable=self.Offset[0], orientation=HORIZONTAL, height=10).grid(row=1, column=0, pady=4)
-    CTkSlider(self.frm_plot, command=on_plot_resize, from_=-10., to=10., number_of_steps=20, variable=self.Offset[1], orientation=VERTICAL, width=10).grid(row=0, column=1, padx=4)
-    CTkSlider(self.frm_plot, command=on_plot_resize, from_=-30., to=30., number_of_steps=60, variable=self.Offset[2], orientation=VERTICAL, width=10).grid(row=0, column=2, padx=4)
+    CTkSlider(self.frm_plot, command=on_plot_resize, from_=-20., to=20., number_of_steps=40, variable=self.Offset[0], orientation=HORIZONTAL, height=10).grid(row=1, column=0, pady=4)
+    CTkSlider(self.frm_plot, command=on_plot_resize, from_=-20., to=20., number_of_steps=40, variable=self.Offset[1], orientation=VERTICAL, width=10).grid(row=0, column=1, padx=4)
+    CTkSlider(self.frm_plot, command=on_plot_resize, from_=-40., to=40., number_of_steps=80, variable=self.Offset[2], orientation=VERTICAL, width=10).grid(row=0, column=2, padx=4)
     CTkSlider(self.frm_plot, command=on_plot_resize, from_=1., to=10., number_of_steps=10, variable=self.Scale, orientation=HORIZONTAL, height=10).grid(row=2, column=0, pady=4)
   
   def solve(self):
     '''Розрахунок задачі'''
-    self.recover()
     if self.Method.get() not in UMO.METHODS.keys(): return
       # підготовка даних
     self.umo.x = tuple(x.get() for x in self.X)
+    self.umo.fun = callexec('fun', self.Fun)
     self.umo.grad = callexec('grad', self.Grad)
     self.umo.hesse = callexec('hesse', self.Hesse)
     self.umo.EPS = self.Eps.get()
       # розв'язок
     self.umo.solve(UMO.METHODS[self.Method.get()])
       # виведення результату
+    x, y, z = self._axes()
     self.umo.displayResult()
     self.tableveiw.panda(self.umo.table)
+    self.plotview.plot(x, y, z)
     self.plotview.route(path=list(self.umo.table.T.to_dict().values()))
+    self.plotview.draw()
   
-  def _axes(self):
+  def _axes(self) -> tuple:
+    '''Значення X, Y, Z'''
     offset = (self.Offset[0].get(), self.Offset[1].get(), self.Offset[2].get())
     scale = self.Scale.get()
     xmin, xmax = offset[0] - scale, offset[0] + scale
@@ -226,12 +225,13 @@ class Appumo(CTk):
     z = np.where((z < zmin) | (z > zmax), np.nan, z)
     return x, y, z
 
-  
-  def switchTheme(self, theme:Theme=None, is_recover:bool=True):
+  def switchTheme(self, theme:Theme=None, is_init:bool=False):
     '''Перемикання теми (Темна <-> Світла)'''
     set_appearance_mode(self.ui.switch(theme).value)
     self.configure(fg_color=self.ui.BG())
-    if is_recover: self.recover()
+    if not is_init:
+      self.plotview.theme()
+      self.tableveiw.recover()
   def switchColormap(self):
     '''Перемикання кольорової-мапи'''
     self.ui.cwitch()
