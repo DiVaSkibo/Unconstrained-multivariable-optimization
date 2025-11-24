@@ -20,6 +20,7 @@ class Appumo(CTk):
       -. ...
       -. appumo.switchTheme(theme : Theme = None, is_init : bool = False)
       -. appumo.switchColormap():
+      -. appumo.recover()
       -. ...
       2. appumo.solve()
       3. appumo.mainloop()
@@ -34,6 +35,7 @@ class Appumo(CTk):
         -. ...
         -. appumo.switchTheme(theme : Theme = None, is_init : bool = False)
         -. appumo.switchColormap():
+        -. appumo.recover()
         -. ...
         2. appumo.solve()
         3. appumo.mainloop()
@@ -57,10 +59,18 @@ class Appumo(CTk):
     '''Будування додатку'''
     self._buildTitle()
     self._buildMain()
+  def recover(self):
+    '''Відновлення додатку'''
+    self.umo.fun = callexec('fun', self.Fun)
+    x, y, z = self._axes()
+    self.plotview.plot(x, y, z)
+    self.plotview.recover()
+    self.tableveiw.recover()
   
   def _buildTitle(self):
     '''Будування Титульної форми'''
     solve_png = Image.open('icons/solve.png')
+    recover_png = Image.open('icons/recover.png')
     theme_png = Image.open('icons/theme.png')
     colormap_png = Image.open('icons/colormap.png')
 
@@ -70,6 +80,11 @@ class Appumo(CTk):
       # іконка розв'язку
     icon = CTkImage(dark_image=solve_png, light_image=solve_png, size=(22, 22))
     btn = CTkButton(master=self.frm_title, command=self.solve, image=icon, text='', width=30, height=30)
+    btn.pack(side=LEFT)
+    btn.image = icon
+      # іконка відновлення
+    icon = CTkImage(dark_image=recover_png, light_image=recover_png, size=(30, 30))
+    btn = CTkButton(master=self.frm_title, command=self.recover, image=icon, text='', width=30, height=30)
     btn.pack(side=LEFT)
     btn.image = icon
       # заголовок
@@ -190,7 +205,7 @@ class Appumo(CTk):
     CTkSlider(self.frm_plot, command=on_plot_resize, from_=-20., to=20., number_of_steps=40, variable=self.Offset[0], orientation=HORIZONTAL, height=10).grid(row=1, column=0, pady=4)
     CTkSlider(self.frm_plot, command=on_plot_resize, from_=-20., to=20., number_of_steps=40, variable=self.Offset[1], orientation=VERTICAL, width=10).grid(row=0, column=1, padx=4)
     CTkSlider(self.frm_plot, command=on_plot_resize, from_=-40., to=40., number_of_steps=80, variable=self.Offset[2], orientation=VERTICAL, width=10).grid(row=0, column=2, padx=4)
-    CTkSlider(self.frm_plot, command=on_plot_resize, from_=1., to=10., number_of_steps=10, variable=self.Scale, orientation=HORIZONTAL, height=10).grid(row=2, column=0, pady=4)
+    CTkSlider(self.frm_plot, command=on_plot_resize, from_=10., to=.5, number_of_steps=20, variable=self.Scale, orientation=HORIZONTAL, height=10).grid(row=2, column=0, pady=4)
   
   def solve(self):
     '''Розрахунок задачі'''
@@ -230,7 +245,7 @@ class Appumo(CTk):
     set_appearance_mode(self.ui.switch(theme).value)
     self.configure(fg_color=self.ui.BG())
     if not is_init:
-      self.plotview.theme()
+      self.plotview.recover()
       self.tableveiw.recover()
   def switchColormap(self):
     '''Перемикання кольорової-мапи'''

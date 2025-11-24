@@ -36,7 +36,7 @@ class Plotview(CTkTabview):
   def draw(self):
     for tab in self.TABS:
       self.Canvases[tab].draw()
-  def theme(self):
+  def recover(self):
     for tab in self.TABS:
       self.paint(tab)
       self.Canvases[tab].draw()
