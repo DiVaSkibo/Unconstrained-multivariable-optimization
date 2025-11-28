@@ -33,25 +33,44 @@ class Tableview(CTkScrollableFrame):
         def on_next():
             self.Iter.set((self.Iter.get() + 1) % len(self.table.values))
             on_radio_changed()
+        
         self.clear()
         self.table = table
+            # іконка наступної ітерації
         next_png = Image.open('icons/next.png')
         icon = CTkImage(dark_image=next_png, light_image=next_png, size=(15, 15))
         btn = CTkButton(master=self, command=on_next, image=icon, text='', width=15, height=15)
         btn.grid(padx=1.6, sticky=W)
         btn.image = icon
+        
         self.tabs = []
+            # побудова заголовків таблиці
         for j, key in zip(range(len(self.table.keys())), self.table.keys()):
             if key == 'method': continue
             match key:
-                case 'x' | 'grad': width = 130
-                case 'fun' | 'gnorm': width = 75
-                case 'hesse': width = 135
-                case 'alpha': width = 55
+                case 'x':
+                    lable = 'Точка'
+                    width = 130
+                case 'grad':
+                    lable = 'Градієнт'
+                    width = 130
+                case 'fun':
+                    lable = 'Функція'
+                    width = 75
+                case 'gnorm':
+                    lable = 'Нормаль градієнту'
+                    width = 75
+                case 'hesse':
+                    lable = 'Гессе'
+                    width = 135
+                case 'alpha':
+                    lable = 'Альфа'
+                    width = 60
             self.tabs.append(CTkEntry(master=self, width=width, fg_color=self.ui.BG_ACCENT()))
             self.tabs[-1].grid(row=0, column=j)
-            self.tabs[-1].insert(0, f'{key}')
+            self.tabs[-1].insert(0, lable)
             self.tabs[-1].configure(state=DISABLED)
+            # побудова клітинок таблиці
         for i, row in self.table.iterrows():
             CTkRadioButton(master=self, value=i, variable=self.Iter, command=on_radio_changed, text=f'{i}', width=40, height=20, radiobutton_width=15, radiobutton_height=15).grid(row=i+1, column=0, padx=6, pady=3, sticky=N)
             for j, value in zip(range(len(row)), row):
@@ -74,7 +93,7 @@ class Tableview(CTkScrollableFrame):
                         txbxv.configure(state=DISABLED)
                         continue
                     case 'alpha':
-                        width = 55
+                        width = 60
                         val = f'{value:.3f}'
                 entv = CTkEntry(master=self, width=width)
                 entv.grid(row=i+1, column=j, sticky=N)

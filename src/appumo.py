@@ -79,7 +79,7 @@ class Appumo(CTk):
     
       # іконка розв'язку
     icon = CTkImage(dark_image=solve_png, light_image=solve_png, size=(22, 22))
-    btn = CTkButton(master=self.frm_title, command=self.solve, image=icon, text='', width=30, height=30)
+    btn = CTkButton(master=self.frm_title, command=self.solveIgnored, image=icon, text='', width=30, height=30)
     btn.pack(side=LEFT)
     btn.image = icon
       # іконка відновлення
@@ -209,15 +209,26 @@ class Appumo(CTk):
   
   def solve(self):
     '''Розрахунок задачі'''
-    if self.Method.get() not in UMO.METHODS.keys(): return
+    if self.Method.get() not in UMO.METHODS.keys():
+      raise Exception('? Appumo.solve: unknown Method')
+
       # підготовка даних
-    self.umo.x = tuple(x.get() for x in self.X)
-    self.umo.fun = callexec('fun', self.Fun)
-    self.umo.grad = callexec('grad', self.Grad)
-    self.umo.hesse = callexec('hesse', self.Hesse)
-    self.umo.EPS = self.Eps.get()
+    try:
+      self.umo.x = tuple(x.get() for x in self.X)
+      self.umo.fun = callexec('Function', self.Fun)
+      self.umo.grad = callexec('Gradient', self.Grad)
+      self.umo.hesse = callexec('Hesse', self.Hesse)
+      try: self.umo.EPS = self.Eps.get()
+      except Exception: raise Exception('[Epsilon]')
+    except Exception as exc:
+      raise Exception(f'? Appumo.solve: incorrect input in {exc}')
+
       # розв'язок
-    self.umo.solve(UMO.METHODS[self.Method.get()])
+    try:
+      self.umo.solve(UMO.METHODS[self.Method.get()])
+    except Exception:
+      raise Exception('! Appumo.solve: umo.solve error')
+
       # виведення результату
     x, y, z = self._axes()
     self.umo.displayResult()
@@ -225,6 +236,12 @@ class Appumo(CTk):
     self.plotview.plot(x, y, z)
     self.plotview.route(path=list(self.umo.table.T.to_dict().values()))
     self.plotview.draw()
+  def solveIgnored(self):
+    '''Безпечний розрахунок задачі'''
+    try:
+      self.solve()
+    except Exception as exc:
+      print(exc)
   
   def _axes(self) -> tuple:
     '''Значення X, Y, Z'''
@@ -256,14 +273,22 @@ class Appumo(CTk):
 def callexec(what:str, line:str|list) -> callable:
   namespace = {'sqrt':math.sqrt, 'np':np}
   match what:
-      case 'fun':
-          ckey = '_FUNC'
-          call = 'def ' + ckey + '(x) -> float: return ' + line.get()
-      case 'grad':
-          ckey = '_GRAD'
-          call = 'def ' + ckey + '(x) -> np.ndarray: return np.array([' + line[0].get() + ', ' + line[1].get() + '])'
-      case 'hesse':
-          ckey = '_HESSE'
-          call = 'def ' + ckey + '(x) -> np.ndarray: return np.array([[' + line[0][0].get() + ', ' + line[0][1].get() + '], [' + line[1][0].get() + ', ' + line[1][1].get() + ']])'
+    case 'Function':
+      call = line.get()
+      if not call: raise Exception('[Function]')
+      ckey = '_FUNC'
+      call = 'def ' + ckey + '(x) -> float: return ' + call
+    case 'Gradient':
+      call = (line[0].get(), line[1].get())
+      if not call[0] or not call[1]: raise Exception('[Gradient]')
+      ckey = '_GRAD'
+      call = 'def ' + ckey + '(x) -> np.ndarray: return np.array([' + call[0] + ', ' + call[1] + '])'
+    case 'Hesse':
+      call = (line[0][0].get(), line[0][1].get(), line[1][0].get(), line[1][1].get())
+      if not call[0] or not call[1] or not call[2] or not call[3]: raise Exception('[Hesse]')
+      ckey = '_HESSE'
+      call = 'def ' + ckey + '(x) -> np.ndarray: return np.array([[' + call[0] + ', ' + call[1] + '], [' + call[2] + ', ' + call[3] + ']])'
+    case _:
+      raise Exception('[?]')
   exec(call, namespace)
   return namespace[ckey]
