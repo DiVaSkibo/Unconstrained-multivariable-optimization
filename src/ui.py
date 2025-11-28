@@ -30,17 +30,18 @@ class UI:
     theme = Theme.Dark
     cmapi = 0
     cmap = lambda self: self.CMAPS[self.cmapi]
-    FG = lambda self: '#ffffff' if self.theme == Theme.Dark else '#000000'
-    BG = lambda self: '#131326' if self.theme == Theme.Dark else '#e5e5cc'
-    BG_ACCENT = lambda self: '#2A2A4A' if self.theme == Theme.Dark else '#B5B59A'
-    DOT = lambda self: 'lightyellow' if self.theme == Theme.Dark else 'navy'
-    DOT_ACCENT = lambda self: 'yellow' if self.theme == Theme.Dark else 'royalblue'
-    LINE = lambda self: 'aquamarine' if self.theme == Theme.Dark else 'teal'
-    LINE_ACCENT = lambda self: 'orangered' if self.theme == Theme.Dark else 'limegreen'
+    FG = lambda self: '#E5E5FF' if self.theme == Theme.Dark else '#000000'
+    FG_SHADOW = lambda self: '#606080' if self.theme == Theme.Dark else '#F2F2C2'
+    BG = lambda self: '#181829' if self.theme == Theme.Dark else '#E5E5CC'
+    BG_ACCENT = lambda self: '#111121' if self.theme == Theme.Dark else '#A6A67C'
+    DOT = lambda self: '#5975FF' if self.theme == Theme.Dark else '#FF7559'
+    DOT_ACCENT = lambda self: '#FFFF4D' if self.theme == Theme.Dark else '#4D4DFF'
+    LINE = lambda self: '#5975FF' if self.theme == Theme.Dark else '#FF7559'
+    LINE_ACCENT = lambda self: '#26FF6F' if self.theme == Theme.Dark else '#26FF6F'
     FONT_FAMILY = 'Georgia'
     FONT_TITLE = lambda self: (self.FONT_FAMILY, 28, 'bold')
     FONT_HEADER = lambda self: (self.FONT_FAMILY, 18, 'bold')
-    CMAPS = ('turbo', 'gnuplot2', 'hot', 'Spectral', 'bone')
+    CMAPS = ('Spectral', 'turbo', 'gnuplot2', 'hot', 'bone')
 
     def __init__(self, theme:Theme=Theme.Dark):
         self.theme = theme

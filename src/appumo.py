@@ -18,11 +18,11 @@ class Appumo(CTk):
   
       1. appumo = Appumo(umo: UMO, ui: UI = UI())
       -. ...
-      -. appumo.switchTheme(theme : Theme = None, is_init : bool = False)
-      -. appumo.switchColormap():
+      -. appumo.switchTheme(theme: Theme = None)
+      -. appumo.switchColormap()
       -. appumo.recover()
       -. ...
-      2. appumo.solve()
+      2. appumo.solve() | appumo.solveIgnored() # для solve бажано використовувати try except
       3. appumo.mainloop()
   '''
   def __init__(self, umo:UMO, ui:UI=UI()):
@@ -33,11 +33,11 @@ class Appumo(CTk):
     
         1. appumo = Appumo(umo: UMO, ui: UI = UI())
         -. ...
-        -. appumo.switchTheme(theme : Theme = None, is_init : bool = False)
-        -. appumo.switchColormap():
+        -. appumo.switchTheme(theme: Theme = None)
+        -. appumo.switchColormap()
         -. appumo.recover()
         -. ...
-        2. appumo.solve()
+        2. appumo.solve() | appumo.solveIgnored() # для solve бажано використовувати try except
         3. appumo.mainloop()
     '''
     super().__init__()
@@ -61,7 +61,7 @@ class Appumo(CTk):
     self._buildMain()
   def recover(self):
     '''Відновлення додатку'''
-    self.umo.fun = callexec('fun', self.Fun)
+    self.umo.fun = callexec('Function', self.Fun)
     x, y, z = self._axes()
     self.plotview.plot(x, y, z)
     self.plotview.recover()

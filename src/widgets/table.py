@@ -66,7 +66,7 @@ class Tableview(CTkScrollableFrame):
                 case 'alpha':
                     lable = 'Альфа'
                     width = 60
-            self.tabs.append(CTkEntry(master=self, width=width, fg_color=self.ui.BG_ACCENT()))
+            self.tabs.append(CTkEntry(master=self, width=width, fg_color=self.ui.BG_ACCENT(), text_color=self.ui.FG_SHADOW()))
             self.tabs[-1].grid(row=0, column=j)
             self.tabs[-1].insert(0, lable)
             self.tabs[-1].configure(state=DISABLED)
