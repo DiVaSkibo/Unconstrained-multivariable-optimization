@@ -1,6 +1,9 @@
+'''\n|| APPUMO - UNCONSTRAINED MULTIVARIABLE OPTIMIZATION APP ||\n'''
+
 import math
 import numpy as np
 
+from src.ui import *
 from src.umo import UMO
 from src.appumo import Appumo
 
@@ -16,8 +19,10 @@ def hesse(x) -> np.ndarray:
 # БАГАТОВИМІРНА БЕЗУМОВНА ОПТИМІЗАЦІЯ
 
 if __name__ == "__main__":
-    print('\n|| UNCONSTRAINED MULTIVARIABLE OPTIMIZATION ||\n')
+    print(__doc__)
     
     appumo = Appumo(UMO(fun=fun, x=(.0, .0), grad=grad, hesse=hesse))
+    
+    #...
     
     appumo.mainloop()

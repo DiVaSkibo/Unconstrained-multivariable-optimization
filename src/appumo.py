@@ -47,13 +47,13 @@ class Appumo(CTk):
     self.plotview = None
     self.title('Багатовимірна безумовна оптимізація')
     self.minsize(1000, 625)
-    self.after(0, lambda:self.state('zoomed'))
     self.rowconfigure(1, weight=1)
     self.columnconfigure(0, weight=1)
     set_default_color_theme('style.json')
     self.configure(fg_color=self.ui.BG())
     self.build()
     self.switchTheme(theme=self.ui.theme, is_init=True)
+    self.after(0, lambda:self.state('zoomed'))
   
   def build(self):
     '''Будування додатку'''

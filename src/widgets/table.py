@@ -21,7 +21,7 @@ class Tableview(CTkScrollableFrame):
             child.destroy()
     def recover(self):
         for tab in self.tabs:
-            tab.configure(fg_color=self.ui.BG_ACCENT())
+            tab.configure(fg_color=self.ui.BG_ACCENT(), text_color=self.ui.FG_SHADOW())
     
     def iteration(self) -> dict:
         return self.table.iloc[self.Iter.get()].to_dict()
