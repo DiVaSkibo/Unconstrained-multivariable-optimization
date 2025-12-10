@@ -63,6 +63,9 @@ class Tableview(CTkScrollableFrame):
                 case 'hesse':
                     lable = 'Гессе'
                     width = 135
+                case 'delta':
+                    lable = 'Крок'
+                    width = 60
                 case 'alpha':
                     lable = 'Альфа'
                     width = 60
@@ -92,7 +95,7 @@ class Tableview(CTkScrollableFrame):
                         txbxv.insert('1.0', val)
                         txbxv.configure(state=DISABLED)
                         continue
-                    case 'alpha':
+                    case 'alpha' | 'delta':
                         width = 60
                         val = f'{value:.3f}'
                 entv = CTkEntry(master=self, width=width)

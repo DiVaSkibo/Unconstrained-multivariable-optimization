@@ -1,6 +1,7 @@
 from customtkinter import *
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib.markers import MarkerStyle
 from matplotlib.contour import QuadContourSet
 from matplotlib.collections import PathCollection
 from mpl_toolkits.mplot3d.art3d import (Poly3DCollection, Path3DCollection)
@@ -9,7 +10,7 @@ from src.ui import *
 
 
 class Plotview(CTkTabview):
-  TABS = ('Плоский', 'Об\'ємний', 'Заповнений')
+  TABS = ('Заповнений', 'Об\'ємний', 'Плоский')
   
   def __init__(self, master, ui:UI, x, y, z, tabset:str=None, width = 300, height = 250, corner_radius = None, border_width = None, bg_color = "transparent", fg_color = None, border_color = None, segmented_button_fg_color = None, segmented_button_selected_color = None, segmented_button_selected_hover_color = None, segmented_button_unselected_color = None, segmented_button_unselected_hover_color = None, text_color = None, text_color_disabled = None, command = None, anchor = "center", state = "normal", **kwargs):
     super().__init__(master, width, height, corner_radius, border_width, bg_color, fg_color, border_color, segmented_button_fg_color, segmented_button_selected_color, segmented_button_selected_hover_color, segmented_button_unselected_color, segmented_button_unselected_hover_color, text_color, text_color_disabled, command, anchor, state, **kwargs)
@@ -58,28 +59,29 @@ class Plotview(CTkTabview):
     for tab in self.TABS:
       match tab:
         case 'Плоский' | 'Заповнений':
-          self.Plots[tab].scatter(x[0], x[1], color=color, s=25, zorder=40)
+          self.Plots[tab].scatter(x[0], x[1], color=color, s=25, zorder=31)
         case 'Об\'ємний':
-          self.Plots[tab].scatter(x[0], x[1], z, color=color, s=25, zorder=40, depthshade=False)
+          self.Plots[tab].scatter(x[0], x[1], z, color=color, s=25, zorder=31, depthshade=False)
   def line(self, x0, z0, x1, z1, is_accent=False):
     liclr = self.ui.LINE_ACCENT() if is_accent else self.ui.LINE()
     doclr = self.ui.DOT_ACCENT() if is_accent else self.ui.DOT()
     for tab in self.TABS:
       match tab:
         case 'Плоский' | 'Заповнений':
-          self.Plots[tab].plot([x0[0], x1[0]], [x0[1], x1[1]], color=liclr, linewidth=2, zorder=10)[0]
-          self.Plots[tab].scatter(x0[0], x0[1], color=self.ui.DOT(), s=25, zorder=10)
-          self.Plots[tab].scatter(x1[0], x1[1], color=doclr, s=25, zorder=20)
+          self.Plots[tab].plot([x0[0], x1[0]], [x0[1], x1[1]], color=liclr, linewidth=2, zorder=11 if is_accent else 10)[0]
+          self.Plots[tab].scatter(x0[0], x0[1], color=self.ui.DOT(), s=25, zorder=20)
+          self.Plots[tab].scatter(x1[0], x1[1], color=doclr, s=25, zorder=21)
         case 'Об\'ємний':
           self.Plots[tab].plot([x0[0], x1[0]], [x0[1], x1[1]], [z0, z1], color=liclr, linewidth=2)[0]
-          self.Plots[tab].scatter(x0[0], x0[1], z0, color=self.ui.DOT(), s=25, zorder=10, depthshade=False)
-          self.Plots[tab].scatter(x1[0], x1[1], z1, color=doclr, s=25, zorder=20, depthshade=False)
+          self.Plots[tab].scatter(x0[0], x0[1], z0, color=self.ui.DOT(), s=25, zorder=20, depthshade=False)
+          self.Plots[tab].scatter(x1[0], x1[1], z1, color=doclr, s=25, zorder=21, depthshade=False)
   def route(self, path:dict, curloc=None, is_init=True):
     if is_init:
       self.clear()
       self.accent = 0
       self.dot(path[0]['x'], path[0]['fun'], is_accent=True)
       for i in range(len(path) - 1):
+      #for i in range(len(path) - 2, -1, -1):
         loc0 = path[i]
         loc1 = path[i + 1]
         if loc1 == curloc:
@@ -90,12 +92,20 @@ class Plotview(CTkTabview):
       self.accent = path.index(curloc) if curloc else 0
       for tab in self.TABS:
         dots = [p for p in self.Plots[tab].collections if type(p) in (PathCollection, Path3DCollection)]
-        dots10 = list(filter(lambda x: x.zorder > 10, dots))
-        for i, dot in zip(range(len(dots10)), dots10):
-          dot.set_color(self.ui.DOT_ACCENT() if i == self.accent else self.ui.DOT())
+        dots21 = list(filter(lambda x: x.zorder >= 21, dots))
+        for i, dot in zip(range(len(dots21)), dots21):
+          is_accent = i == self.accent
+          dot.set_color(self.ui.DOT_ACCENT() if is_accent else self.ui.DOT())
+          dot.set_zorder(22 if is_accent else 21)
+          marker = MarkerStyle('P') if is_accent else MarkerStyle('.')
+          dot.set_paths([marker.get_path().transformed(marker.get_transform())])
+          dot.set_sizes([50 if is_accent else 25])
         lines = self.Plots[tab].lines
         for i, line in zip(range(len(lines)), lines):
-          line.set_color(self.ui.LINE_ACCENT() if i+1 == self.accent else self.ui.LINE())
+          is_accent = i+1 == self.accent
+          line.set_color(self.ui.LINE_ACCENT() if is_accent else self.ui.LINE())
+          if tab in ('Плоский', 'Заповнений'):
+            line.set_zorder(11 if is_accent else 10)
   def contour(self, tab:str, x, y, z):
     for con in [p for p in self.Plots[tab].collections if type(p) in (QuadContourSet, Poly3DCollection)]:
       con.remove()

@@ -1,5 +1,6 @@
 import math
 import numpy as np
+import pandas as pd
 import inspect
 from customtkinter import *
 from PIL import Image
@@ -71,6 +72,7 @@ class Appumo(CTk):
     '''Будування Титульної форми'''
     solve_png = Image.open('icons/solve.png')
     recover_png = Image.open('icons/recover.png')
+    excel_png = Image.open('icons/excel.png')
     theme_png = Image.open('icons/theme.png')
     colormap_png = Image.open('icons/colormap.png')
 
@@ -85,6 +87,11 @@ class Appumo(CTk):
       # іконка відновлення
     icon = CTkImage(dark_image=recover_png, light_image=recover_png, size=(30, 30))
     btn = CTkButton(master=self.frm_title, command=self.recover, image=icon, text='', width=30, height=30)
+    btn.pack(side=LEFT)
+    btn.image = icon
+      # іконка ексель файлу
+    icon = CTkImage(dark_image=excel_png, light_image=excel_png, size=(30, 30))
+    btn = CTkButton(master=self.frm_title, command=self.xlsx, image=icon, text='', width=30, height=30)
     btn.pack(side=LEFT)
     btn.image = icon
       # заголовок
@@ -148,7 +155,7 @@ class Appumo(CTk):
     CTkLabel(master=self.frm_input, text='ВВЕДЕННЯ', font=self.ui.FONT_HEADER()).grid(row=0, column=0, columnspan=3, sticky=EW, pady=10)
       # метод
     CTkLabel(master=self.frm_input, text='Метод:', anchor=W).grid(row=1, column=0, columnspan=2, sticky=EW)
-    CTkOptionMenu(master=self.frm_input, values=tuple(UMO.METHODS.keys()), variable=self.Method).grid(row=2, column=0, columnspan=3, sticky=EW)
+    CTkOptionMenu(master=self.frm_input, values=UMO.METHODS, variable=self.Method).grid(row=2, column=0, columnspan=3, sticky=EW)
       # функція
     CTkLabel(master=self.frm_input, text='Функція:', anchor=W).grid(row=4, column=0, columnspan=2, sticky=EW)
     CTkEntry(master=self.frm_input, textvariable=self.Fun).grid(row=5, column=0, columnspan=3, sticky=EW)
@@ -207,10 +214,11 @@ class Appumo(CTk):
     CTkSlider(self.frm_plot, command=on_plot_resize, from_=-40., to=40., number_of_steps=80, variable=self.Offset[2], orientation=VERTICAL, width=10).grid(row=0, column=2, padx=4)
     CTkSlider(self.frm_plot, command=on_plot_resize, from_=10., to=.5, number_of_steps=20, variable=self.Scale, orientation=HORIZONTAL, height=10).grid(row=2, column=0, pady=4)
   
-  def solve(self):
+  def solve(self, method:str=None):
     '''Розрахунок задачі'''
-    if self.Method.get() not in UMO.METHODS.keys():
-      raise Exception('? Appumo.solve: unknown Method')
+    if not method: method = self.Method.get()
+    if method not in UMO.METHODS: raise Exception(f'? Appumo.solve: unknown method "{method}"')
+    else: self.Method.set(method)
 
       # підготовка даних
     try:
@@ -222,12 +230,10 @@ class Appumo(CTk):
       except Exception: raise Exception('[Epsilon]')
     except Exception as exc:
       raise Exception(f'? Appumo.solve: incorrect input in {exc}')
-
+    
       # розв'язок
-    try:
-      self.umo.solve(UMO.METHODS[self.Method.get()])
-    except Exception:
-      raise Exception('! Appumo.solve: umo.solve error')
+    try: self.umo.solve(method)
+    except Exception: raise Exception('! Appumo.solve: umo.solve error')
 
       # виведення результату
     x, y, z = self._axes()
@@ -238,10 +244,14 @@ class Appumo(CTk):
     self.plotview.draw()
   def solveIgnored(self):
     '''Безпечний розрахунок задачі'''
-    try:
-      self.solve()
-    except Exception as exc:
-      print(exc)
+    try: self.solve()
+    except Exception as exc: print(exc)
+  
+  def xlsx(self, path:str=None):
+    if not path: path = f'UMO - {self.Method.get()}'
+    writer = pd.ExcelWriter(f'{path}.xlsx')
+    self.umo.table.to_excel(writer, sheet_name=self.Method.get())
+    writer._save()
   
   def _axes(self) -> tuple:
     '''Значення X, Y, Z'''
@@ -256,7 +266,7 @@ class Appumo(CTk):
     z = np.array([self.umo.fun([xi, yi]) for (xi, yi) in zip(x, y)])
     z = np.where((z < zmin) | (z > zmax), np.nan, z)
     return x, y, z
-
+  
   def switchTheme(self, theme:Theme=None, is_init:bool=False):
     '''Перемикання теми (Темна <-> Світла)'''
     set_appearance_mode(self.ui.switch(theme).value)
