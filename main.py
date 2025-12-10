@@ -2,7 +2,6 @@
 
 import math
 import numpy as np
-import pandas as pd
 
 from src.ui import *
 from src.umo import UMO

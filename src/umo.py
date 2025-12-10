@@ -15,6 +15,8 @@ class UMO:
     '''
 
     METHODS = (
+        'Хука-Дживса',
+        'Нелдера-Міда',
         'Найшвидшого спуску',
         'Спряжених градієнтів',
         'Квазі-Ньютона (BFGS)',
@@ -33,6 +35,8 @@ class UMO:
         '''
         Оптимізація функції за методом:
         
+            метод "Хука-Дживса"
+            метод "Нелдера-Міда"
             метод "Найшвидшого спуску"
             метод "Спряжених градієнтів"
             метод "Квазі-Ньютона (BFGS)"
@@ -41,6 +45,8 @@ class UMO:
         self.result = None
         self.table = None
         match method:
+            case 'Хука-Дживса': self.result, self.table = self._hookejeeves()
+            case 'Нелдера-Міда': self.result, self.table = self._neldermead()
             case 'Найшвидшого спуску': self.result, self.table = self._steepestDescent()
             case 'Спряжених градієнтів': self.result, self.table = self._conjugateGradient()
             case 'Квазі-Ньютона (BFGS)': self.result, self.table = self._bfgs()
@@ -54,42 +60,43 @@ class UMO:
             else: print(f'  {key}\t   =\t {self.result[key]}')
         print()
     
-    # def _hookejeeves(self):
-    #     '''Метод Хука-Дживса'''
-    #     x = np.asarray(self.x, dtype=float)
-    #     y = np.asarray(self.x, dtype=float)
-    #     fx = self.fun(x)
-    #     fy = self.fun(y)
-    #     delta = .5
-    #     table = []
-    #     for _ in range(self.MAXITER):
-    #         table.append({'method':self.METHODS[0], 'x':x.tolist(), 'fun':float(self.fun(x)), 'delta':delta})
-    #         if delta < self.EPS: break
-    #         for j in range(len(x)):
-    #             d = 0
-    #             yj = y
-    #             yj[j] += delta
-    #             fyj = self.fun(yj)
-    #             if fyj < fy:
-    #                 d = 1
-    #                 fy = fyj
-    #             else:
-    #                 yj[j] -= 2 * delta
-    #                 fyj = self.fun(yj)
-    #                 if fyj < fy:
-    #                     d = -1
-    #                     fy = fyj
-    #             y[j] += delta * d
-    #         if fy < fx:
-    #             xk = y
-    #             y = xk + (xk - x)
-    #             x = xk
-    #             fx = fy
-    #         else:
-    #             delta /= 2
-    #             y = x
-    #             fy = fx
-    #     return table[-1], pd.DataFrame(table)
+    def _hookejeeves(self):
+        '''Метод Хука-Дживса'''
+        x = np.asarray(self.x, dtype=float)
+        y = np.asarray(self.x, dtype=float)
+        fx = self.fun(x)
+        fy = self.fun(y)
+        delta = .5
+        alpha = .5
+        table = []
+        for _ in range(self.MAXITER):
+            table.append({'method':'Хука-Дживса', 'x':x.tolist(), 'fun':float(self.fun(x)), 'delta':delta})
+            if delta < self.EPS: break
+            for j in range(len(x)):
+                d = 0
+                yj = y.copy()
+                yj[j] += delta
+                fyj = self.fun(yj)
+                if fyj < fy:
+                    d = 1
+                    fy = fyj
+                else:
+                    yj[j] -= 2 * delta
+                    fyj = self.fun(yj)
+                    if fyj < fy:
+                        d = -1
+                        fy = fyj
+                y[j] += delta * d
+            if fy < fx:
+                xk = y.copy()
+                y = xk + (xk - x)
+                x = xk.copy()
+                fx = fy
+            else:
+                delta *= alpha
+                y = x.copy()
+                fy = fx
+        return table[-1], pd.DataFrame(table)
     # def _neldermead(self, alpha=2., beta=.1, gamma=2., delta=.08):
     #     '''Метод Нелдера-Міда'''
     #     x = np.asarray(self.x, dtype=float)
@@ -100,7 +107,7 @@ class UMO:
     #     table = []
     #     iter = 0
     #     while np.max(np.abs(xs - xs.mean(axis=0))) > self.EPS:
-    #         table.append({'method':self.METHODS[0], 'x':x.tolist(), 'fun':float(self.fun(x))})
+    #         table.append({'method':'Нелдера-Міда', 'x':x.tolist(), 'fun':float(self.fun(x))})
     #         best, good, worst = xs
     #         mid = np.add(xs[0], xs[1]) / 2.
     #         r = mid + alpha * (mid - worst)
@@ -184,7 +191,7 @@ class UMO:
             rho = 1. / denom
             I = np.eye(len(x))
             H = (I - rho * np.outer(d, g)) @ H @ (I - rho * np.outer(g, d)) + rho * np.outer(d, d)
-            x = x_new
+            x = x_new.copy()
             dx = dx_new
             gnorm = LA.norm(dx)
         return table[-1], pd.DataFrame(table)
