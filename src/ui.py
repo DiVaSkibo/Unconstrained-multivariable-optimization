@@ -35,7 +35,7 @@ class UI:
     BG = lambda self: '#181829' if self.theme == Theme.Dark else '#E5E5CC'
     BG_ACCENT = lambda self: '#111121' if self.theme == Theme.Dark else '#A6A67C'
     DOT = lambda self: '#5975FF' if self.theme == Theme.Dark else '#FF7559'
-    DOT_ACCENT = lambda self: '#FFFF4D' if self.theme == Theme.Dark else '#4D4DFF'
+    DOT_ACCENT = lambda self: '#FFFF4D' if self.theme == Theme.Dark else '#4DF3FF'
     LINE = lambda self: '#5975FF' if self.theme == Theme.Dark else '#FF7559'
     LINE_ACCENT = lambda self: '#26FF6F' if self.theme == Theme.Dark else '#26FF6F'
     FONT_FAMILY = 'Georgia'

@@ -144,8 +144,7 @@ class UMO:
         for _ in range(self.MAXITER):
             table.append({'method':'Найшвидшого спуску', 'x':x.tolist(), 'fun':float(self.fun(x)), 'grad':dx.tolist(), 'alpha':float(alpha)})
             if LA.norm(self.grad(x)) < self.EPS: break
-            # alpha = self._armijo_line_search(x, dx)
-            alpha = self._quadric_interpolation(x, dx, .0, .002)
+            alpha = self._line_search(x, dx)
             x += alpha * dx
             dx = -self.grad(x)
         return table[-1], pd.DataFrame(table)
@@ -156,19 +155,15 @@ class UMO:
         dx = -self.grad(x)
         gnorm = LA.norm(self.grad(x))
         table = []
-        i = 0
-        for i in range(self.MAXITER):
+        for _ in range(self.MAXITER):
             table.append({'method':'Спряжених градієнтів', 'x':x.tolist(), 'fun':float(self.fun(x)), 'grad':dx.tolist(), 'alpha':float(alpha), 'gnorm':float(gnorm)})
             if gnorm < self.EPS: break
-            # if LA.norm(self.grad(x)) < self.EPS: break
-            # alpha = self._armijo_line_search(x, dx)
-            alpha = self._quadric_interpolation(x, dx, .0, .002)
+            alpha = self._line_search(x, dx)
             x += alpha * dx
             gnorm_new = LA.norm(self.grad(x))
             beta = gnorm_new ** 2 / gnorm ** 2
             dx = beta * dx - self.grad(x)
             gnorm = gnorm_new
-        print(i)
         return table[-1], pd.DataFrame(table)
     def _bfgs(self):
         '''Метод Бройдена-Флетчера-Гольдфарба-Шанно'''
@@ -181,7 +176,7 @@ class UMO:
             table.append({'method':'Квазі-Ньютона (BFGS)', 'x':x.tolist(), 'fun':float(self.fun(x)), 'grad':dx.tolist(), 'hesse':self.hesse(x).tolist(), 'gnorm':float(gnorm)})
             if gnorm < self.EPS: break
             direction = -H @ dx
-            alpha = self._armijo_line_search(x, direction)
+            alpha = self._line_search(x, direction)
             x_new = x + alpha * direction
             dx_new = self.grad(x_new)
             d = x_new - x
@@ -211,7 +206,7 @@ class UMO:
             gnorm = LA.norm(self.grad(x))
         return table[-1], pd.DataFrame(table)
 
-    def _quadric_interpolation(self, x, dx, a:float, h:float) -> float:
+    def _line_search(self, x, dx, a:float=.0, h:float=.002) -> float:
         '''Лінійний пошук зі зменшенням кроку за квадратичною інтерполяцією'''
         if self.fun(x + a * dx) < self.fun(x + (a + h) * dx):
             h = -h
@@ -257,11 +252,3 @@ class UMO:
                     falpha = fbeta
                     fbeta = fdelta
         return delta
-    def _armijo_line_search(self, x, dx, alpha:float=1., beta:float=0.5, const:float=1e-4) -> float:
-        '''Лінійний пошук зі зменшенням кроку за правилом Арміхо'''
-        f_x = self.fun(x)
-        grad_x = self.grad(x)
-        while self.fun(x + alpha * dx) > f_x + const * alpha * np.dot(grad_x, dx):
-            alpha *= beta
-        return alpha
-
