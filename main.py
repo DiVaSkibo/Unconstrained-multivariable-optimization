@@ -15,6 +15,7 @@ def grad(x) -> np.ndarray:
 def hesse(x) -> np.ndarray:
     return np.array([[10., 4.], [4., 4.]])
 
+
 # БАГАТОВИМІРНА БЕЗУМОВНА ОПТИМІЗАЦІЯ
 
 if __name__ == "__main__":
