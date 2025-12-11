@@ -17,14 +17,14 @@ class Appumo(CTk):
 
     *Використання:*
     
-      1. appumo = Appumo(umo: UMO, ui: UI = UI())
-      -. ...
-      -. appumo.switchTheme(theme: Theme = None)
-      -. appumo.switchColormap()
-      -. appumo.recover()
-      -. ...
-      2. appumo.solve() | appumo.solveIgnored() # для solve бажано використовувати try except
-      3. appumo.mainloop()
+        1. appumo = Appumo(umo: UMO, ui: UI = UI())
+        -. ...
+        -. appumo.switchTheme(theme: Theme = None)
+        -. appumo.switchColormap()
+        -. appumo.recover()
+        -. ...
+        2. appumo.solve() | appumo.solveIgnored() # для solve бажано використовувати try except
+        3. appumo.mainloop()
     '''
     def __init__(self, umo:UMO, ui:UI=UI()):
         '''
@@ -32,14 +32,14 @@ class Appumo(CTk):
 
         *Використання:*
         
-          1. appumo = Appumo(umo: UMO, ui: UI = UI())
-          -. ...
-          -. appumo.switchTheme(theme: Theme = None)
-          -. appumo.switchColormap()
-          -. appumo.recover()
-          -. ...
-          2. appumo.solve() | appumo.solveIgnored() # для solve бажано використовувати try except
-          3. appumo.mainloop()
+            1. appumo = Appumo(umo: UMO, ui: UI = UI())
+            -. ...
+            -. appumo.switchTheme(theme: Theme = None)
+            -. appumo.switchColormap()
+            -. appumo.recover()
+            -. ...
+            2. appumo.solve() | appumo.solveIgnored() # для solve бажано використовувати try except
+            3. appumo.mainloop()
         '''
         super().__init__()
         self.umo = umo
@@ -246,6 +246,7 @@ class Appumo(CTk):
         except Exception as exc: print(exc)
     
     def xlsx(self, path:str=None):
+        '''Створення ексель-файлу із інформацією ітерацій'''
         if not path: path = f'UMO - {self.Method.get()}'
         writer = pd.ExcelWriter(f'{path}.xlsx')
         self.umo.table.to_excel(writer, sheet_name=self.Method.get())
