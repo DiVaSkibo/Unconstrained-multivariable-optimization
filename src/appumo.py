@@ -79,29 +79,29 @@ class Appumo(CTk):
         self.frm_title = CTkFrame(master=self)
         self.frm_title.grid(row=0, column=0, sticky=EW, padx=40, pady=30)
         
-        # іконка розв'язку
+          # іконка розв'язку
         icon = CTkImage(dark_image=solve_png, light_image=solve_png, size=(22, 22))
         btn = CTkButton(master=self.frm_title, command=self.solveIgnored, image=icon, text='', width=30, height=30)
         btn.pack(side=LEFT)
         btn.image = icon
-        # іконка відновлення
+          # іконка відновлення
         icon = CTkImage(dark_image=recover_png, light_image=recover_png, size=(30, 30))
         btn = CTkButton(master=self.frm_title, command=self.recover, image=icon, text='', width=30, height=30)
         btn.pack(side=LEFT)
         btn.image = icon
-        # іконка ексель файлу
+          # іконка ексель файлу
         icon = CTkImage(dark_image=excel_png, light_image=excel_png, size=(30, 30))
         btn = CTkButton(master=self.frm_title, command=self.xlsx, image=icon, text='', width=30, height=30)
         btn.pack(side=LEFT)
         btn.image = icon
-        # заголовок
+          # заголовок
         CTkLabel(master=self.frm_title, text='БАГАТОВИМІРНА БЕЗУМОВНА ОПТИМІЗАЦІЯ', justify=CENTER, font=self.ui.FONT_TITLE()).pack(side=LEFT, fill=X, expand=True)
-        # іконка теми
+          # іконка теми
         icon = CTkImage(dark_image=theme_png, light_image=theme_png, size=(30, 30))
         btn = CTkButton(master=self.frm_title, command=self.switchTheme, image=icon, text='', width=30, height=30)
         btn.pack(side=RIGHT)
         btn.image = icon
-        # іконка кольорової-мапи
+          # іконка кольорової-мапи
         icon = CTkImage(dark_image=colormap_png, light_image=colormap_png, size=(20, 20))
         btn = CTkButton(master=self.frm_title, command=self.switchColormap, image=icon, text='', width=30, height=30)
         btn.pack(side=RIGHT)
@@ -113,7 +113,7 @@ class Appumo(CTk):
         self.frm_main.rowconfigure(0, weight=1)
         self.frm_main.columnconfigure(1, weight=1)
 
-        # створення змінних для програми
+          # створення змінних для програми
         funstr = inspect.getsource(self.umo.fun)
         funstr = funstr[funstr.find('return ') + 7:]
         funstr = funstr.replace('math.', '').replace(' * ', '*').replace(' ** ', '**')
@@ -140,7 +140,7 @@ class Appumo(CTk):
         self.Offset = (DoubleVar(value=.0), DoubleVar(value=.0), DoubleVar(value=.0))
         self.Scale = DoubleVar(value=5.)
         
-        # будування підформ
+          # будування підформ
         self._buildInput()
         self._buildPlot()
         self._buildTable()
@@ -151,29 +151,29 @@ class Appumo(CTk):
         self.frm_input.grid(row=0, column=0, sticky=NW)
         self.frm_input.rowconfigure((3, 9), minsize=10)
         
-        # заголовок
+          # заголовок
         CTkLabel(master=self.frm_input, text='ВВЕДЕННЯ', font=self.ui.FONT_HEADER()).grid(row=0, column=0, columnspan=3, sticky=EW, pady=10)
-        # метод
+          # метод
         CTkLabel(master=self.frm_input, text='Метод:', anchor=W).grid(row=1, column=0, columnspan=2, sticky=EW)
         CTkOptionMenu(master=self.frm_input, values=UMO.METHODS, variable=self.Method).grid(row=2, column=0, columnspan=3, sticky=EW)
-        # функція
+          # функція
         CTkLabel(master=self.frm_input, text='Функція:', anchor=W).grid(row=4, column=0, columnspan=2, sticky=EW)
         CTkEntry(master=self.frm_input, textvariable=self.Fun).grid(row=5, column=0, columnspan=3, sticky=EW)
-        # початкова точка
+          # початкова точка
         CTkLabel(master=self.frm_input, text='Початкова точка:', anchor=E).grid(row=6, column=0, sticky=EW, pady=30)
         CTkEntry(master=self.frm_input, textvariable=self.X[0], width=36).grid(row=6, column=1)
         CTkEntry(master=self.frm_input, textvariable=self.X[1], width=36).grid(row=6, column=2, sticky=W)
-        # градієнт
+          # градієнт
         CTkLabel(master=self.frm_input, text='Градієнт:', anchor=E).grid(row=7, column=0, rowspan=2, sticky=EW, padx=20, pady=20)
         CTkEntry(master=self.frm_input, textvariable=self.Grad[0]).grid(row=7, column=1, columnspan=2, sticky=EW)
         CTkEntry(master=self.frm_input, textvariable=self.Grad[1]).grid(row=8, column=1, columnspan=2, sticky=EW)
-        # гессе
+          # гессе
         CTkLabel(master=self.frm_input, text='Гессе:', anchor=E).grid(row=10, column=0, rowspan=2, sticky=EW, padx=10, pady=20)
         CTkEntry(master=self.frm_input, textvariable=self.Hesse[0][0], width=63).grid(row=10, column=1)
         CTkEntry(master=self.frm_input, textvariable=self.Hesse[0][1], width=63).grid(row=10, column=2)
         CTkEntry(master=self.frm_input, textvariable=self.Hesse[1][0], width=63).grid(row=11, column=1)
         CTkEntry(master=self.frm_input, textvariable=self.Hesse[1][1], width=63).grid(row=11, column=2)
-        # точність
+          # точність
         CTkLabel(master=self.frm_input, text='Точність:', anchor=E).grid(row=12, column=0, sticky=EW, padx=20, pady=30)
         CTkEntry(master=self.frm_input, textvariable=self.Eps, width=81).grid(row=12, column=1)
     def _buildTable(self):
@@ -186,9 +186,9 @@ class Appumo(CTk):
         self.frm_table.grid(row=0, column=2, sticky=NW)
         self.frm_table.rowconfigure(1, weight=1)
         
-        # заголовок
+          # заголовок
         CTkLabel(master=self.frm_table, text='ТАБЛИЦЯ', font=self.ui.FONT_HEADER()).grid(row=0, column=0, sticky=EW, pady=10)
-        # таблиця
+          # таблиця
         self.tableveiw = Tableview(master=self.frm_table, ui=self.ui, signal=on_iter_changed, bg_color='red')
         self.tableveiw.grid(row=1, column=0, sticky=NSEW)
     def _buildPlot(self, tab:str=None):
@@ -203,12 +203,12 @@ class Appumo(CTk):
         self.frm_plot.columnconfigure(0, weight=1)
         self.frm_plot.rowconfigure(3, minsize=10)
         
-        # дані
+          # дані
         x, y, z = self._axes()
-        # фабула з вкладками
+          # фабула з вкладками
         self.plotview = Plotview(master=self.frm_plot, ui=self.ui, x=x, y=y, z=z, tabset=tab)
         self.plotview.grid(row=0, column=0, sticky=NSEW)
-        # слайдери
+          # слайдери
         CTkSlider(self.frm_plot, command=on_plot_resize, from_=-20., to=20., number_of_steps=40, variable=self.Offset[0], orientation=HORIZONTAL, height=10).grid(row=1, column=0, pady=4)
         CTkSlider(self.frm_plot, command=on_plot_resize, from_=-20., to=20., number_of_steps=40, variable=self.Offset[1], orientation=VERTICAL, width=10).grid(row=0, column=1, padx=4)
         CTkSlider(self.frm_plot, command=on_plot_resize, from_=-40., to=40., number_of_steps=80, variable=self.Offset[2], orientation=VERTICAL, width=10).grid(row=0, column=2, padx=4)
@@ -220,7 +220,7 @@ class Appumo(CTk):
         if method not in UMO.METHODS: raise Exception(f'? Appumo.solve: unknown method "{method}"')
         else: self.Method.set(method)
 
-        # підготовка даних
+          # підготовка даних
         try:
             self.umo.x = tuple(x.get() for x in self.X)
             self.umo.fun = callexec('Function', self.Fun)
@@ -230,12 +230,10 @@ class Appumo(CTk):
             except Exception: raise Exception('[Epsilon]')
         except Exception as exc:
             raise Exception(f'? Appumo.solve: incorrect input in {exc}')
-        
-        # розв'язок
+          # розв'язок
         try: self.umo.solve(method)
         except Exception: raise Exception('! Appumo.solve: umo.solve error')
-
-        # виведення результату
+          # виведення результату
         x, y, z = self._axes()
         self.umo.displayResult()
         self.tableveiw.panda(self.umo.table)

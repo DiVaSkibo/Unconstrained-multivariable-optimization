@@ -13,7 +13,7 @@ class UMO:
         2. umo.solve(method: str)
         3. umo.displayResult() | result = umo.result | table = umo.table
     '''
-
+    
     METHODS = (
         'Хука-Дживса',
         'Нелдера-Міда',
@@ -21,7 +21,7 @@ class UMO:
         'Спряжених градієнтів',
         'Квазі-Ньютона (BFGS)',
         'Ньютона')
-
+    
     def __init__(self, fun:callable, x:tuple=(.0, .0), grad:callable=None, hesse:callable=None, eps:float=1e-3, maxiter:int=1000):
         self.fun = fun
         self.x = x
@@ -142,8 +142,8 @@ class UMO:
         dx = -self.grad(x)
         table = []
         for _ in range(self.MAXITER):
-            table.append({'method':'Найшвидшого спуску', 'x':x.tolist(), 'fun':float(self.fun(x)), 'grad':dx.tolist(), 'alpha':float(alpha)})
-            if LA.norm(self.grad(x)) < self.EPS: break
+            table.append({'method':'Найшвидшого спуску', 'x':x.tolist(), 'fun':float(self.fun(x)), 'grad':dx.tolist(), 'alpha':float(alpha), 'gnorm':float(LA.norm(-dx))})
+            if LA.norm(-dx) < self.EPS: break
             alpha = self._line_search(x, dx)
             x += alpha * dx
             dx = -self.grad(x)
@@ -153,17 +153,17 @@ class UMO:
         x = np.asarray(self.x, dtype=float)
         alpha = .0
         dx = -self.grad(x)
-        gnorm = LA.norm(self.grad(x))
+        gnorm = LA.norm(-dx)
         table = []
         for _ in range(self.MAXITER):
             table.append({'method':'Спряжених градієнтів', 'x':x.tolist(), 'fun':float(self.fun(x)), 'grad':dx.tolist(), 'alpha':float(alpha), 'gnorm':float(gnorm)})
             if gnorm < self.EPS: break
             alpha = self._line_search(x, dx)
             x += alpha * dx
-            gnorm_new = LA.norm(self.grad(x))
-            beta = gnorm_new ** 2 / gnorm ** 2
+            gnormk = LA.norm(self.grad(x))
+            beta = gnormk ** 2 / gnorm ** 2
             dx = beta * dx - self.grad(x)
-            gnorm = gnorm_new
+            gnorm = gnormk
         return table[-1], pd.DataFrame(table)
     def _bfgs(self):
         '''Метод Бройдена-Флетчера-Гольдфарба-Шанно'''
@@ -173,21 +173,21 @@ class UMO:
         gnorm = LA.norm(dx)
         table = []
         for _ in range(self.MAXITER):
-            table.append({'method':'Квазі-Ньютона (BFGS)', 'x':x.tolist(), 'fun':float(self.fun(x)), 'grad':dx.tolist(), 'hesse':self.hesse(x).tolist(), 'gnorm':float(gnorm)})
+            table.append({'method':'Квазі-Ньютона (BFGS)', 'x':x.tolist(), 'fun':float(self.fun(x)), 'grad':dx.tolist(), 'hesse':H.tolist(), 'gnorm':float(gnorm)})
             if gnorm < self.EPS: break
             direction = -H @ dx
             alpha = self._line_search(x, direction)
-            x_new = x + alpha * direction
-            dx_new = self.grad(x_new)
-            d = x_new - x
-            g = dx_new - dx
+            xk = x + alpha * direction
+            dxk = self.grad(xk)
+            d = xk - x
+            g = dxk - dx
             denom = g @ d
             if abs(denom) < 1e-12: break
             rho = 1. / denom
             I = np.eye(len(x))
             H = (I - rho * np.outer(d, g)) @ H @ (I - rho * np.outer(g, d)) + rho * np.outer(d, d)
-            x = x_new.copy()
-            dx = dx_new
+            x = xk.copy()
+            dx = dxk
             gnorm = LA.norm(dx)
         return table[-1], pd.DataFrame(table)
     def _newton(self):
@@ -203,36 +203,40 @@ class UMO:
             x += deltax
             dx = self.grad(x)
             deltax = -LA.inv(self.hesse(x)) @ dx
-            gnorm = LA.norm(self.grad(x))
+            gnorm = LA.norm(dx)
         return table[-1], pd.DataFrame(table)
-
-    def _line_search(self, x, dx, a:float=.0, h:float=.002) -> float:
+    
+    def _line_search(self, x, dx, a0:float=.0, h:float=.002) -> float:
         '''Лінійний пошук зі зменшенням кроку за квадратичною інтерполяцією'''
-        if self.fun(x + a * dx) < self.fun(x + (a + h) * dx):
+        def phi(y) -> float:
+            return self.fun(x + y * dx)
+        
+        if phi(a0) < phi(a0 + h):
             h = -h
-        while self.fun(x + a * dx) > self.fun(x + (a + h) * dx):
-            a += h
+        while phi(a0) > phi(a0 + h):
+            a0 += h
             h *= 2
-        alpha, beta, gamma = 0, 0, 0
-        if self.fun(x + a * dx) > self.fun(x + (a + h / 2) * dx):
-            alpha = a;
-            beta = a + h / 2;
-            gamma = a + h;
+        alpha, beta, gamma = .0, .0, .0
+        if phi(a0) > phi(a0 + h / 2):
+            alpha = a0
+            beta = a0 + h / 2
+            gamma = a0 + h
         else:
-            alpha = a - h / 2;
-            beta = a;
-            gamma = a + h / 2;
-        falpha = self.fun(x + alpha * dx)
-        fbeta = self.fun(x + beta * dx)
-        fgamma = self.fun(x + gamma * dx)
-        delta = 0.0
-        fdelta = 0.0;
-        while abs(beta - delta) > self.EPS:
+            alpha = a0 - h / 2
+            beta = a0
+            gamma = a0 + h / 2
+        falpha = phi(alpha)
+        fbeta = phi(beta)
+        fgamma = phi(gamma)
+        delta = .0
+        fdelta = .0
+        for _ in range(self.MAXITER):
+            if abs(beta - delta) < self.EPS: break
             Delta = (alpha - beta) * (beta - gamma) * (gamma - alpha)
             a = (falpha * (gamma - beta) + fbeta * (alpha - gamma) + fgamma * (beta - alpha)) / Delta
             b = (falpha * (beta * beta - gamma * gamma) + fbeta * (gamma * gamma - alpha * alpha) + fgamma * (alpha * alpha - beta * beta)) / Delta
             delta = -b / a / 2
-            fdelta = self.fun(x + delta * dx)
+            fdelta = phi(delta)
             if delta < beta:
                 if fdelta > fbeta:
                     alpha = delta
