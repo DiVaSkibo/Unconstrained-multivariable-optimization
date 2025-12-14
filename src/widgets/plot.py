@@ -55,7 +55,7 @@ class Plotview(CTkTabview):
             self.cmap(tab)
             self.Canvases[tab].draw()
     def clear(self):
-        '''Очишення точок, ліній полотен'''
+        '''Очищення точок, ліній полотен'''
         for tab in self.TABS:
               # точки
             for dot in [p for p in self.Plots[tab].collections if type(p) in (PathCollection, Path3DCollection)]:
@@ -123,10 +123,10 @@ class Plotview(CTkTabview):
         match tab:
             case 'Плоский':
                 self.Plots[tab].contour(x, y, z, levels=15)
-            case 'Об\'ємний':
-                self.Plots[tab].plot_surface(x, y, z, linewidth=0, cmap='viridis', alpha=.75, shade=False, axlim_clip=True)
             case 'Заповнений':
                 self.Plots[tab].contourf(x, y, z, levels=15, alpha=.75)
+            case 'Об\'ємний':
+                self.Plots[tab].plot_surface(x, y, z, linewidth=0, cmap='viridis', alpha=.75, shade=False, axlim_clip=True)
 
     def paint(self, tab:str):
         '''Фарбування'''
@@ -151,7 +151,7 @@ class Plotview(CTkTabview):
         
         self.CanvasWidgets[tab].configure(bg=self.ui.BG(), highlightthickness=0)
     def cmap(self, tab:str=None):
-        '''Колорова-мапа'''
+        '''Кольорова-мапа'''
         if tab:
             for con in [p for p in self.Plots[tab].collections if type(p) in (QuadContourSet, Poly3DCollection)]:
                 con.set_cmap(self.ui.cmap())
