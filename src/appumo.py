@@ -219,7 +219,7 @@ class Appumo(CTk):
         if not method: method = self.Method.get()
         if method not in UMO.METHODS: raise Exception(f'? Appumo.solve: unknown method "{method}"')
         else: self.Method.set(method)
-
+        
           # підготовка даних
         try:
             self.umo.x = tuple(x.get() for x in self.X)
@@ -231,8 +231,10 @@ class Appumo(CTk):
         except Exception as exc:
             raise Exception(f'? Appumo.solve: incorrect input in {exc}')
           # розв'язок
-        try: self.umo.solve(method)
-        except Exception: raise Exception('! Appumo.solve: umo.solve error')
+        try:
+            self.umo.solve(method)
+        except Exception as exc:
+            raise Exception(f'! Appumo.solve: umo.solve: {exc}')
           # виведення результату
         x, y, z = self._axes()
         self.umo.displayResult()

@@ -22,7 +22,7 @@ class UMO:
         'Квазі-Ньютона (BFGS)',
         'Ньютона')
     
-    def __init__(self, fun:callable, x:tuple=(.0, .0), grad:callable=None, hesse:callable=None, eps:float=1e-3, maxiter:int=1000):
+    def __init__(self, fun:callable, x:tuple=(.0, .0), grad:callable=None, hesse:callable=None, eps:float=1e-3, maxiter:int=100):
         self.fun = fun
         self.x = x
         self.grad = grad
@@ -97,44 +97,40 @@ class UMO:
                 y = x.copy()
                 fy = fx
         return table[-1], pd.DataFrame(table)
-    # def _neldermead(self, alpha=2., beta=.1, gamma=2., delta=.08):
-    #     '''Метод Нелдера-Міда'''
-    #     x = np.asarray(self.x, dtype=float)
-    #     xs = np.array([self.x, np.add(self.x, [delta, 0.0]), np.add(self.x, [0.0, delta])])
-    #     fx = np.array([self.fun(x) for x in xs])
-    #     xs = xs[np.argsort(fx)]
-    #     fx = fx[np.argsort(fx)]
-    #     table = []
-    #     iter = 0
-    #     while np.max(np.abs(xs - xs.mean(axis=0))) > self.EPS:
-    #         table.append({'method':'Нелдера-Міда', 'x':x.tolist(), 'fun':float(self.fun(x))})
-    #         best, good, worst = xs
-    #         mid = np.add(xs[0], xs[1]) / 2.
-    #         r = mid + alpha * (mid - worst)
-    #         fr = self.fun(r)
-    #         if fx[0] <= fr < fx[1]:
-    #             xs[2] = r
-    #         elif fr < fx[0]:
-    #             e = mid + gamma * (r - mid)
-    #             if self.fun(e) < fr:
-    #                 xs[2] = e
-    #             else:
-    #                 xs[2] = r
-    #         else:
-    #             if fr < fx[2]:
-    #                 c = mid + beta * (r - mid)
-    #             else:
-    #                 c = mid + beta * (worst - mid)
-    #             if self.fun(c) < fx[2]:
-    #                 xs[2] = c
-    #             else:
-    #                 best = xs[0]
-    #                 xs = best + beta * (xs - best)
-    #         fx = np.array([self.fun(x) for x in xs])
-    #         xs = xs[np.argsort(fx)]
-    #         fx = fx[np.argsort(fx)]
-    #         iter += 1
-    #     return table[-1], pd.DataFrame(table)
+    def _neldermead(self, delta=1.):
+        '''Метод Нелдера-Міда'''
+        x = np.asarray(self.x, dtype=float)
+        simplex = [x]
+        fsimplex = [self.fun(x)]
+        for i in range(len(x)):
+            y = x.copy()
+            y[i] += delta
+            simplex.append(y)
+            fsimplex.append(self.fun(y))
+        simplex = np.array(simplex, dtype=float)
+        fsimplex = np.array(fsimplex, dtype=float)
+        table = []
+        for _ in range(self.MAXITER):
+            sidxs = np.argsort(fsimplex)
+            simplex = simplex[sidxs]
+            fsimplex = fsimplex[sidxs]
+            #table.append({'method':'Нелдера-Міда', 'x':simplex[0].tolist(), 'fun':float(fsimplex[0].tolist())})
+            table.append({'method':'Нелдера-Міда', 'x':simplex[0].tolist(), 'fun':float(fsimplex[0].tolist()), 'simplex':[s.tolist() for s in simplex], 'fsimplex':[float(fs) for fs in fsimplex]})
+            p = simplex[:-1].mean(axis=0)
+            if abs(fsimplex[0] - self.fun(p)) < self.EPS: break
+            xk = simplex[-1] + 2. * (p - simplex[-1])
+            fxk = self.fun(xk)
+            if fxk < fsimplex[0]:
+                theta = 2.
+            elif fsimplex[-1] <= fxk <= fsimplex[-2]:
+                theta = .5
+            elif fxk >= self.fun(p):
+                theta = -.5
+            else:
+                theta = -.5
+            simplex[-1] = simplex[-1] + (1 + theta) * (p - simplex[-1])
+            fsimplex[-1] = self.fun(simplex[-1])
+        return table[-1], pd.DataFrame(table)
     def _steepestDescent(self):
         '''Метод найшвидшого спуску'''
         x = np.asarray(self.x, dtype=float)
