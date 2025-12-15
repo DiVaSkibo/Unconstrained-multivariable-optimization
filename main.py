@@ -21,7 +21,7 @@ def hesse(x) -> np.ndarray:
 if __name__ == "__main__":
     print(f'\n|| {__doc__} ||\n')
     
-    appumo = Appumo(UMO(fun=fun, x=(.0, .0), grad=grad, hesse=hesse))
+    appumo = Appumo(UMO(fun=fun, x=(0.0, 0.0), grad=grad, hesse=hesse))
     
     #...
     

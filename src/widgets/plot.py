@@ -87,17 +87,27 @@ class Plotview(CTkTabview):
                     self.Plots[tab].plot([x0[0], x1[0]], [x0[1], x1[1]], [z0, z1], c=color, marker='.', ms=10, mfc=self.ui.DOT(), lw=linewidth)
     def route(self, path:dict, curloc=None, is_init=True):
         '''Малювання маршруту'''
+        is_simplex = 'simplex' in path[0]
         if is_init:
             self.clear()
             self.accent = 0
             self.dot(path[0]['x'], path[0]['fun'], is_accent=True)
               # лінії
-            for i in range(len(path) - 1):
-                loc0 = path[i]
-                loc1 = path[i + 1]
-                self.line(loc0['x'], loc0['fun'], loc1['x'], loc1['fun'])
+            if is_simplex:
+                for loc in path:
+                    is_accent = loc == path[0]
+                    simplex = loc['simplex']
+                    fsimplex = loc['fsimplex']
+                    for i in range(len(simplex) - 1):
+                        self.line(simplex[i], fsimplex[i], simplex[i + 1], fsimplex[i + 1], is_accent=is_accent)
+                    self.line(simplex[-1], fsimplex[-1], simplex[0], fsimplex[0], is_accent=is_accent)
+            else:
+                for i in range(len(path) - 1):
+                    loc0 = path[i]
+                    loc1 = path[i + 1]
+                    self.line(loc0['x'], loc0['fun'], loc1['x'], loc1['fun'])
         else:
-            self.accent = path.index(curloc) if curloc else 0
+            self.accent = path.index(curloc) if curloc else self.accent
             for tab in self.TABS:
                   # точки
                 dots = [p for p in self.Plots[tab].collections if type(p) in (PathCollection, Path3DCollection)]
@@ -105,13 +115,25 @@ class Plotview(CTkTabview):
                     dot.remove()
                   # лінії
                 lines = self.Plots[tab].lines
-                for i, line in zip(range(len(lines)), lines):
-                    is_accent = i+1 == self.accent
-                    line.set_color(self.ui.LINE_ACCENT() if is_accent else self.ui.LINE())
-                    line.set_linewidth(3 if is_accent else 2)
-                    line.set_markerfacecolor(self.ui.DOT())
-                    if tab in ('Плоский', 'Заповнений'):
-                        line.set_zorder(11 if is_accent else 10)
+                if is_simplex:
+                    argc = len(curloc['simplex'])
+                    for i in range(0, len(lines), argc):
+                        is_accent = i / 3 == self.accent
+                        for j in range(argc):
+                            line = lines[i + j]
+                            line.set_color(self.ui.LINE_ACCENT() if is_accent else self.ui.LINE())
+                            line.set_linewidth(3 if is_accent else 2)
+                            line.set_markerfacecolor(self.ui.DOT())
+                            if tab in ('Плоский', 'Заповнений'):
+                                line.set_zorder(11 if is_accent else 10)
+                else:
+                    for i, line in zip(range(len(lines)), lines):
+                        is_accent = i+1 == self.accent
+                        line.set_color(self.ui.LINE_ACCENT() if is_accent else self.ui.LINE())
+                        line.set_linewidth(3 if is_accent else 2)
+                        line.set_markerfacecolor(self.ui.DOT())
+                        if tab in ('Плоский', 'Заповнений'):
+                            line.set_zorder(11 if is_accent else 10)
               # акцентова точка
             self.dot(curloc['x'], curloc['fun'], is_accent=True)
     def contour(self, tab:str, x, y, z):

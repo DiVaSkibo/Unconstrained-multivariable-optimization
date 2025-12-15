@@ -114,8 +114,6 @@ class UMO:
             sidxs = np.argsort(fsimplex)
             simplex = simplex[sidxs]
             fsimplex = fsimplex[sidxs]
-            #table.append({'method':'Нелдера-Міда', 'x':simplex[0].tolist(), 'fun':float(fsimplex[0].tolist())})
-            table.append({'method':'Нелдера-Міда', 'x':simplex[0].tolist(), 'fun':float(fsimplex[0].tolist()), 'simplex':[s.tolist() for s in simplex], 'fsimplex':[float(fs) for fs in fsimplex]})
             p = simplex[:-1].mean(axis=0)
             if abs(fsimplex[0] - self.fun(p)) < self.EPS: break
             xk = simplex[-1] + 2. * (p - simplex[-1])
@@ -128,8 +126,10 @@ class UMO:
                 theta = -.5
             else:
                 theta = -.5
-            simplex[-1] = simplex[-1] + (1 + theta) * (p - simplex[-1])
-            fsimplex[-1] = self.fun(simplex[-1])
+            xk = simplex[-1] + (1 + theta) * (p - simplex[-1])
+            table.append({'method':'Нелдера-Міда', 'x':xk.tolist(), 'fun':float(fsimplex[0].tolist()), 'simplex':[s.tolist() for s in simplex], 'fsimplex':[float(fs) for fs in fsimplex]})
+            simplex[-1] = xk
+            fsimplex[-1] = self.fun(xk)
         return table[-1], pd.DataFrame(table)
     def _steepestDescent(self):
         '''Метод найшвидшого спуску'''
