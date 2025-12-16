@@ -47,6 +47,7 @@ class Tableview(CTkScrollableFrame):
         
         self.clear()
         self.table = table
+        self._parent_canvas.yview_moveto(0.0)
           # іконка наступної ітерації
         next_png = Image.open('icons/next.png')
         icon = CTkImage(dark_image=next_png, light_image=next_png, size=(15, 15))
@@ -68,6 +69,12 @@ class Tableview(CTkScrollableFrame):
                 case 'fun':
                     lable = 'Функція'
                     width = 75
+                case 'simplex':
+                    lable = 'Симплекс'
+                    width = 135
+                case 'fsimplex':
+                    lable = 'Функції симплексу'
+                    width = 80
                 case 'gnorm':
                     lable = 'Нормаль градієнту'
                     width = 75
@@ -96,6 +103,22 @@ class Tableview(CTkScrollableFrame):
                     case 'fun' | 'gnorm':
                         width = 75
                         val = f'{value:.3f}'
+                    case 'simplex':
+                        width = 135
+                        val = f'{'\n'.join(['\t'.join([f'{v:.3f}' for v in vs]) for vs in value])}'
+                        txbxv = CTkTextbox(master=self, width=width, height=67)
+                        txbxv.grid(row=i+1, column=j, sticky=N)
+                        txbxv.insert('1.0', val)
+                        txbxv.configure(state=DISABLED)
+                        continue
+                    case 'fsimplex':
+                        width = 80
+                        val = '\n'.join([f'{v:.3f}' for v in value])
+                        txbxv = CTkTextbox(master=self, width=width, height=67)
+                        txbxv.grid(row=i+1, column=j, sticky=N)
+                        txbxv.insert('1.0', val)
+                        txbxv.configure(state=DISABLED)
+                        continue
                     case 'hesse':
                         width = 135
                         val = [v for vv in value for v in vv]
