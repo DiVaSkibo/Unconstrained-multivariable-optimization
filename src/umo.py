@@ -125,7 +125,7 @@ class UMO:
             elif fxk >= self.fun(p):
                 theta = -.5
             else:
-                theta = -.5
+                theta = 1.
             xk = simplex[-1] + (1 + theta) * (p - simplex[-1])
             table.append({'method':'Нелдера-Міда', 'x':xk.tolist(), 'fun':float(fsimplex[0].tolist()), 'simplex':[s.tolist() for s in simplex], 'fsimplex':[float(fs) for fs in fsimplex]})
             simplex[-1] = xk
