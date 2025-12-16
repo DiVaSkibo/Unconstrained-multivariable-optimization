@@ -245,7 +245,9 @@ class Appumo(CTk):
     def solveIgnored(self):
         '''Безпечний розрахунок задачі'''
         try: self.solve()
-        except Exception as exc: print(exc)
+        except Exception as exc:
+          print(exc)
+          self._warning(exc)
     
     def xlsx(self, path:str=None):
         '''Створення ексель-файлу із інформацією ітерацій'''
@@ -279,6 +281,30 @@ class Appumo(CTk):
         self.ui.cwitch()
         self.plotview.cmap()
         self.plotview.draw()
+    
+    def _warning(self, exception:Exception):
+        '''Попередження про помилку'''
+        message = f'{exception}'.replace(':', ':\n')
+        warning_png = Image.open('icons/warning_y.png' if message[0] == '?' else 'icons/warning_r.png')
+        
+        warning = CTkToplevel(master=self)
+        warning.minsize(200, 175)
+        warning.resizable(False, False)
+        warning.title('💥')
+        def close():
+            warning.destroy()
+            warning.update()
+
+          # іконка розв'язку
+        icon = CTkImage(dark_image=warning_png, light_image=warning_png, size=(75, 75))
+        btn = CTkButton(master=warning, command=close, image=icon, text='', width=75, height=75)
+        btn.pack(pady=15)
+        btn.image = icon
+          # повідомлення
+        CTkLabel(master=warning, text=message, font=self.ui.FONT_WARNING(), text_color=self.ui.FONT_COLOR()).pack(side=LEFT, expand=True, padx=15)
+        
+        warning.after(100, warning.focus_force)
+
 
 def callexec(what:str, line:str|list) -> callable:
     namespace = {'sqrt':math.sqrt, 'np':np}

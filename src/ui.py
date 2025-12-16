@@ -22,9 +22,11 @@ class UI:
         DOT_ACCENT - колір ключової точки на графіку
         LINE - колір лінії на графіку
         LINE_ACCENT - колір ключової лінії на графіку
+        FONT_COLOR - колір шрифту
         FONT_FAMILY - шрифт
         FONT_TITLE - шрифт головного тексту
         FONT_HEADER - шрифт заголовку
+        FONT_WARNING - шрифт попередження
         CMAPS - набір колорових-мап
     '''
     theme = Theme.Dark
@@ -38,9 +40,11 @@ class UI:
     DOT_ACCENT = lambda self: '#FFFF4D' if self.theme == Theme.Dark else '#4DF3FF'
     LINE = lambda self: '#5975FF' if self.theme == Theme.Dark else '#FF7559'
     LINE_ACCENT = lambda self: '#26FF6F' if self.theme == Theme.Dark else '#26FF6F'
+    FONT_COLOR = lambda self: '#E5E5FF' if self.theme == Theme.Dark else '#3A3A2C'
     FONT_FAMILY = 'Georgia'
     FONT_TITLE = lambda self: (self.FONT_FAMILY, 28, 'bold')
     FONT_HEADER = lambda self: (self.FONT_FAMILY, 18, 'bold')
+    FONT_WARNING = lambda self: (self.FONT_FAMILY, 14, 'bold')
     CMAPS = ('Spectral', 'turbo', 'gnuplot2', 'hot', 'bone')
 
     def __init__(self, theme:Theme=Theme.Dark):
