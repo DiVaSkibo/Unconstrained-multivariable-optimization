@@ -13,7 +13,7 @@ from src.widgets.plot import Plotview
 
 class Appumo(CTk):
     '''
-    **GUI - Багатовимірна Безумовна Оптимізація**
+    **UMO Application**
 
     *Використання:*
     
@@ -307,7 +307,12 @@ class Appumo(CTk):
 
 
 def callexec(what:str, line:str|list) -> callable:
-    namespace = {'sqrt':math.sqrt, 'np':np}
+    namespace = {
+      'sqrt':math.sqrt, 'abs':abs,
+      'sin':math.sin, 'cos':math.cos, 'tan':math.tan,
+      'asin':math.asin, 'acos':math.acos, 'atan':math.atan,
+      'log':math.log, 'log10':math.log10, 'log2':math.log2,
+      'exp':math.exp, 'np':np}
     match what:
         case 'Function':
             call = line.get()
