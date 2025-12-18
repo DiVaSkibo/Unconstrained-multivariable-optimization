@@ -21,16 +21,16 @@ class Tableview(CTkScrollableFrame):
         self.Iter = IntVar(value=0)
         self.tabs = []
     
+    def recover(self):
+        '''Відновлення віджету'''
+        for tab in self.tabs:
+            tab.configure(fg_color=self.ui.BG_ACCENT(), text_color=self.ui.FG_SHADOW())
     def clear(self):
         '''Очищення від клітинок'''
         self.table = None
         self.tabs = []
         for child in self.winfo_children():
             child.destroy()
-    def recover(self):
-        '''Відновлення віджету'''
-        for tab in self.tabs:
-            tab.configure(fg_color=self.ui.BG_ACCENT(), text_color=self.ui.FG_SHADOW())
     
     def iteration(self) -> dict:
         '''Поточна ітерація'''

@@ -43,16 +43,16 @@ class Plotview(CTkTabview):
         '''Малювання полотен'''
         for tab in self.TABS:
             self.Canvases[tab].draw()
-    def recover(self):
-        '''Відновлення віджету'''
-        for tab in self.TABS:
-            self.paint(tab)
-            self.Canvases[tab].draw()
     def plot(self, x, y, z):
         '''Малювання функції'''
         for tab in self.TABS:
             self.contour(tab, x, y, z)
             self.cmap(tab)
+            self.Canvases[tab].draw()
+    def recover(self):
+        '''Відновлення віджету'''
+        for tab in self.TABS:
+            self.paint(tab)
             self.Canvases[tab].draw()
     def clear(self):
         '''Очищення точок, ліній полотен'''
@@ -63,6 +63,7 @@ class Plotview(CTkTabview):
               # лінії
             for line in self.Plots[tab].lines:
                 line.remove()
+        self.draw()
     
     def dot(self, x, z, color:str=None, is_accent=False):
         '''Малювання точки'''

@@ -65,8 +65,8 @@ class Appumo(CTk):
         self.umo.fun = callexec('Function', self.Fun)
         x, y, z = self._axes()
         self.plotview.plot(x, y, z)
-        self.plotview.recover()
-        self.tableveiw.recover()
+        self.plotview.clear()
+        self.tableveiw.clear()
     
     def _buildTitle(self):
         '''Будування Титульної форми'''
@@ -251,7 +251,7 @@ class Appumo(CTk):
     
     def xlsx(self, path:str=None):
         '''Створення ексель-файлу із інформацією ітерацій'''
-        if not path: path = f'UMO - {self.Method.get()}'
+        if not path: path = f'Appumo - {self.Method.get()}'
         writer = pd.ExcelWriter(f'{path}.xlsx')
         self.umo.table.to_excel(writer, sheet_name=self.Method.get())
         writer._save()
