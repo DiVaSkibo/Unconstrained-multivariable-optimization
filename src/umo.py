@@ -115,7 +115,7 @@ class UMO:
             simplex = simplex[sidxs]
             fsimplex = fsimplex[sidxs]
             p = simplex[:-1].mean(axis=0)
-            if abs(fsimplex[0] - self.fun(p)) < self.EPS: break
+            if abs(fsimplex[-1] - self.fun(p)) < self.EPS: break
             xk = simplex[-1] + 2. * (p - simplex[-1])
             fxk = self.fun(xk)
             if fxk < fsimplex[0]:
@@ -177,9 +177,7 @@ class UMO:
             dxk = self.grad(xk)
             d = xk - x
             g = dxk - dx
-            denom = g @ d
-            if abs(denom) < 1e-12: break
-            rho = 1. / denom
+            rho = 1. / (g @ d)
             I = np.eye(len(x))
             H = (I - rho * np.outer(d, g)) @ H @ (I - rho * np.outer(g, d)) + rho * np.outer(d, d)
             x = xk.copy()
