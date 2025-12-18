@@ -14,7 +14,7 @@ from src.widgets.plot import Plotview
 class Appumo(CTk):
     '''
     **UMO Application**
-
+    
     *Використання:*
     
         1. appumo = Appumo(umo: UMO, ui: UI = UI())
@@ -23,13 +23,13 @@ class Appumo(CTk):
         -. appumo.switchColormap()
         -. appumo.recover()
         -. ...
-        2. appumo.solve() | appumo.solveIgnored() # для solve бажано використовувати try except
+        2. appumo.solve() | appumo.solveIgnored()   # для solve бажано використовувати try except
         3. appumo.mainloop()
     '''
     def __init__(self, umo:UMO, ui:UI=UI()):
         '''
         **GUI - Багатовимірна Безумовна Оптимізація**
-
+        
         *Використання:*
         
             1. appumo = Appumo(umo: UMO, ui: UI = UI())
@@ -38,7 +38,7 @@ class Appumo(CTk):
             -. appumo.switchColormap()
             -. appumo.recover()
             -. ...
-            2. appumo.solve() | appumo.solveIgnored() # для solve бажано використовувати try except
+            2. appumo.solve() | appumo.solveIgnored()   # для solve бажано використовувати try except
             3. appumo.mainloop()
         '''
         super().__init__()
@@ -75,7 +75,7 @@ class Appumo(CTk):
         excel_png = Image.open('icons/excel.png')
         theme_png = Image.open('icons/theme.png')
         colormap_png = Image.open('icons/colormap.png')
-
+        
         self.frm_title = CTkFrame(master=self)
         self.frm_title.grid(row=0, column=0, sticky=EW, padx=40, pady=30)
         
@@ -112,7 +112,7 @@ class Appumo(CTk):
         self.frm_main.grid(row=1, column=0, sticky=NSEW, padx=25, pady=15)
         self.frm_main.rowconfigure(0, weight=1)
         self.frm_main.columnconfigure(1, weight=1)
-
+        
           # створення змінних для програми
         funstr = inspect.getsource(self.umo.fun)
         funstr = funstr[funstr.find('return ') + 7:]
@@ -129,7 +129,7 @@ class Appumo(CTk):
             hessestr = hessestr.replace('math.', '').replace(' * ', '*').replace(' ** ', '**').replace('[', '').replace(']', '')
             hessestr = hessestr.split(', ')
         else: hessestr = ['', '', '', '']
-
+        
         self.Method = StringVar(value=None)
         self.Fun = StringVar(value=funstr)
         self.X = [DoubleVar(value=self.umo.x[0]), DoubleVar(value=self.umo.x[1])]
@@ -294,7 +294,7 @@ class Appumo(CTk):
         def close():
             warning.destroy()
             warning.update()
-
+        
           # іконка розв'язку
         icon = CTkImage(dark_image=warning_png, light_image=warning_png, size=(75, 75))
         btn = CTkButton(master=warning, command=close, image=icon, text='', width=75, height=75)
@@ -308,11 +308,12 @@ class Appumo(CTk):
 
 def callexec(what:str, line:str|list) -> callable:
     namespace = {
-      'sqrt':math.sqrt, 'abs':abs,
-      'sin':math.sin, 'cos':math.cos, 'tan':math.tan,
-      'asin':math.asin, 'acos':math.acos, 'atan':math.atan,
-      'log':math.log, 'log10':math.log10, 'log2':math.log2,
-      'exp':math.exp, 'np':np}
+        'sqrt':math.sqrt, 'abs':abs,
+        'sin':math.sin, 'cos':math.cos, 'tan':math.tan,
+        'asin':math.asin, 'acos':math.acos, 'atan':math.atan,
+        'log':math.log, 'log10':math.log10, 'log2':math.log2,
+        'exp':math.exp, 'np':np
+    }
     match what:
         case 'Function':
             call = line.get()
